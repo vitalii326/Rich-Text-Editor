@@ -16,14 +16,24 @@ import {
   reflectComponentType,
 } from "@angular/core";
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
-import { BehaviorSubject, take } from "rxjs";
 import { PickerComponent } from "@ctrl/ngx-emoji-mart";
+import { BehaviorSubject, take } from "rxjs";
 
 import * as ace from "ace-builds";
 import "ace-builds/src-noconflict/ace";
+import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-crimson_editor";
 import "ace-builds/src-noconflict/theme-monokai";
-import "ace-builds/src-noconflict/mode-javascript";
+import {
+  CdkSuggestionItem,
+  CdkSuggestionSetting,
+  CdkToolbarItemSetting,
+  IIMageRes,
+  IImgInfo,
+  IUploadReq,
+  ToolbarItem,
+} from "../interfaces";
+import { SafeDOMPipe } from "../pipes/safe-dom.pipe";
 import {
   focusElementWithRange,
   focusElementWithRangeIfNotFocused,
@@ -41,16 +51,6 @@ import {
 import { loadImage } from "../utils/image";
 import { CircularProgressComponent } from "./circular-progressive/circular-progressive.component";
 import { CdkSuggestionComponent } from "./suggestion/suggestion.component";
-import { SafeDOMPipe } from "../pipes/safe-dom.pipe";
-import {
-  CdkSuggestionItem,
-  CdkSuggestionSetting,
-  CdkToolbarItemSetting,
-  IIMageRes,
-  IImgInfo,
-  IUploadReq,
-  ToolbarItem,
-} from "../interfaces";
 
 @Component({
   selector: "recruitler-rte",

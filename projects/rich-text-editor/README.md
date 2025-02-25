@@ -52,6 +52,41 @@ When creating or editing existing RTE content during (POST or PATCH) your backen
  - replace `#something` in the content with the new formatted hashtag in the hashtag data format
 
 
+## Parsing saved content 
+When using content created by the RTE you must parse hashtag formated text and image tags into usable data.
+Here's what we're currently doing:
+```
+<div #container [innerHTML]="content"></div>
+```
+
+```
+@ViewChild('container') container!: ElementRef<HTMLElement>;
+@ViewChild('container', { read: ViewContainerRef }) containerRef: ViewContainerRef;
+
+ngAfterViewInit() {
+  // note that IImgInfor was created for most image APIs, ours was Cloudflare images when developing this
+  const imgInfo: IImgInfo = {
+    domain: this.imgUrl,
+    accountId: this.imgAccountId,
+    variant: this.variant,
+  };
+  if (this.container?.nativeElement) {
+    makeLiveHashtags(this.container?.nativeElement, HASHTAG, this.hashtagTemplate, this.containerRef);
+    makeLiveImagetags(this.container?.nativeElement, imgInfo, IMGTAG);
+
+    this.formatHighlightjsCode();
+  }
+}
+
+formatHighlightjsCode(): void {
+  const codes = this.container?.nativeElement.querySelectorAll('code');
+  codes?.forEach((code) => {
+    if (code) hljs.highlightElement(code);
+  });
+}
+```
+
+
 # We need help! 
 If you're using this Rich Text Editor package you likely need a code syntax highlighter.
 We're working to bring Ace into the RTE package and could use some expertise!

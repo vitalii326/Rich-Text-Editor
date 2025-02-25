@@ -1,12 +1,9 @@
-// unused?
-// .ready-display {
-//   code {
-//     display: block;
-//     padding: 3px;
-//     min-height: 1rem;
-//   }
-// }
 @import "@ctrl/ngx-emoji-mart/picker";
+
+:host {
+  display: block;
+  width: 100%;
+}
 
 rte-suggestion {
   position: absolute;
@@ -28,45 +25,31 @@ rte-suggestion {
   z-index: 0 !important;
   overflow: auto;
   display: inline-block;
+
   * {
     transition: none;
   }
+
   &:focus {
     box-shadow: none;
     border: 0;
     outline: none;
   }
+
+  // Headings
   h1 {
     color: rgb(66, 114, 89);
   }
   h2 {
     color: rgb(193, 211, 113);
   }
-  h3 {
-  }
-  h4 {
-  }
-  h5 {
-  }
-  b {
-  }
-  i {
-  }
-  u {
-  }
-  ol {
-  }
-  ol li {
-  }
-  ul li {
-  }
 
+  // Inline elements
   a,
   abbr,
   b,
   button,
   br,
-  button,
   cite,
   em,
   i,
@@ -81,6 +64,7 @@ rte-suggestion {
     display: inline;
   }
 
+  // Block elements
   div,
   p,
   blockquote,
@@ -101,6 +85,7 @@ rte-suggestion {
     display: block;
   }
 
+  // Quotes
   blockquote {
     border-left: 2px solid #ddd;
     margin-left: 0;
@@ -110,13 +95,14 @@ rte-suggestion {
     font-style: italic;
   }
 
-  // ACE CODE EDITOR
+  // Code styling
   code {
     font-family: monospace;
     display: block;
     padding: 3px;
     min-height: 1rem;
   }
+
   .code-inline {
     font-family: monospace;
     background-color: #aaa;
@@ -127,33 +113,34 @@ rte-suggestion {
     min-width: 1rem;
   }
 
+  // ACE editor styles
   .ace_editor {
-    & div {
-      font-family: monospace;
-    }
     height: 84px;
     border-radius: 6px;
     border: 1px solid lightgrey;
     margin: 4px 0px;
+
+    & div {
+      font-family: monospace;
+    }
   }
 
-  /* ------------------------------------------------------------------------ *
-    CSS only placeholder for contenteditable
-  * ------------------------------------------------------------------------ */
-  [contenteditable="true"]:empty:before {
+  // Placeholder styling
+  &[contenteditable="true"]:empty:before {
     content: attr(placeholder);
     pointer-events: none;
     display: block; /* For Firefox */
     color: rgb(var(--body-text));
-    // opacity: 0.65;
   }
 
+  // Image styling
   img {
     width: 100%;
     margin-top: 12px;
   }
 }
 
+// Upload progress overlay
 .rte-uploading-progress {
   position: absolute;
   width: 100%;
@@ -162,8 +149,10 @@ rte-suggestion {
   justify-content: center;
   align-items: center;
   background-color: rgba(169, 169, 169, 0.658);
+  z-index: 2;
 }
 
+// Toolbar button styling
 .rte-toolbar-btn {
   display: flex;
   flex: 0 0 auto;
@@ -172,8 +161,8 @@ rte-suggestion {
   height: 33px;
   padding: 0;
   width: 34px;
-  margin: 2px 1px 2px 1px;
-  background: 0 0;
+  margin: 2px 1px;
+  background: transparent;
   border: 0;
   border-radius: 3px;
   box-shadow: none;
@@ -185,26 +174,30 @@ rte-suggestion {
   overflow: hidden;
   text-transform: none;
   cursor: pointer;
+
   &.rte-active {
     background-color: #c8cbcf;
   }
+
   &:hover {
     background-color: #c8cbcf;
   }
 }
 
+// Quick toolbar
 .rte-quick-toolbar {
   display: block;
   position: absolute;
   top: 0;
   z-index: -1;
   opacity: 0;
-  transition: cubic-bezier(0.075, 0.82, 0.165, 1) 0.5s opacity;
+  transition: opacity 0.3s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .rte-show {
   opacity: 0.8;
   z-index: 99999;
+
   &:hover {
     opacity: 1;
   }
@@ -214,6 +207,7 @@ rte-suggestion {
   display: flex;
 }
 
+// Popup styling
 .rte-popup {
   background-color: #fff;
   border: 1px solid #aaa;
@@ -222,6 +216,7 @@ rte-suggestion {
   min-width: 0;
   overflow: hidden;
   border-color: #aaa transparent transparent transparent;
+
   &::after,
   &::before {
     content: "";
@@ -234,11 +229,13 @@ rte-suggestion {
     opacity: 1;
     border-style: solid;
   }
+
   &::before {
     border-color: #aaa transparent transparent transparent;
     border-width: 9px;
     margin-left: -9px;
   }
+
   &::after {
     border-color: white transparent transparent transparent;
     border-width: 8px;
@@ -247,6 +244,7 @@ rte-suggestion {
   }
 }
 
+// Emoji picker positioning
 .emoji {
   position: absolute;
   z-index: 1000;

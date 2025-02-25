@@ -7,15 +7,14 @@ import {
   Output,
   TemplateRef,
   ViewChild,
-  ViewEncapsulation,
 } from "@angular/core";
 
-import { isRectEmpty } from "../../utils/DOM";
 import {
   CdkSuggestionItem,
   CdkSuggestionSelect,
   CdkSuggestionSetting,
 } from "../../interfaces";
+import { isRectEmpty } from "../../utils/DOM";
 
 @Component({
   selector: "rte-suggestion",
@@ -24,12 +23,14 @@ import {
   standalone: true,
   imports: [CommonModule],
 })
-
 export class CdkSuggestionComponent {
   @ViewChild("container") container!: ElementRef<HTMLElement>;
-  @Input("getSuggestionList") getSuggestionList?: (tag: string) => Promise<CdkSuggestionSetting>;
-  @Output('hashtagKeywords') hashtagKeywords = new EventEmitter<string>();
-  @Output("cdkSuggestionSelected") select = new EventEmitter<CdkSuggestionSelect>();
+  @Input("getSuggestionList") getSuggestionList?: (
+    tag: string
+  ) => Promise<CdkSuggestionSetting>;
+  @Output("hashtagKeywords") hashtagKeywords = new EventEmitter<string>();
+  @Output("cdkSuggestionSelected") select =
+    new EventEmitter<CdkSuggestionSelect>();
   itemTemplate!: TemplateRef<any>;
   suggestions: CdkSuggestionItem[] = [];
   filteredSuggestions: CdkSuggestionItem[] = [];
@@ -44,13 +45,15 @@ export class CdkSuggestionComponent {
   filter!: (query: string, item: CdkSuggestionItem) => boolean;
 
   defaultFilter = (query: string, item: CdkSuggestionItem) => {
-    const search = item.search || item.key
+    const search = item.search || item.key;
     return search.toLowerCase().indexOf(query.toLowerCase()) != -1;
-  }
+  };
 
   filterItems = (query: string) => {
-    this.filteredSuggestions = this.suggestions.filter((item) => this.filter(query, item));
-  }
+    this.filteredSuggestions = this.suggestions.filter((item) =>
+      this.filter(query, item)
+    );
+  };
 
   show = (visible: boolean) => {
     this.isVisible = visible;
@@ -77,13 +80,18 @@ export class CdkSuggestionComponent {
 
         let rect = selection.getRangeAt(0).getBoundingClientRect();
         if (isRectEmpty(rect)) {
-          rect = (selection.getRangeAt(0).startContainer as Element).getBoundingClientRect();
+          rect = (
+            selection.getRangeAt(0).startContainer as Element
+          ).getBoundingClientRect();
         }
 
-        const editorRect = this.container.nativeElement.parentElement?.getBoundingClientRect();
+        const editorRect =
+          this.container.nativeElement.parentElement?.getBoundingClientRect();
         if (editorRect) {
-          this.container.nativeElement.style.top = "" + (rect.bottom - editorRect.top) + "px";
-          this.container.nativeElement.style.left = "" + (rect.right - editorRect.x) + "px";
+          this.container.nativeElement.style.top =
+            "" + (rect.bottom - editorRect.top) + "px";
+          this.container.nativeElement.style.left =
+            "" + (rect.right - editorRect.x) + "px";
           this.container.nativeElement.classList.toggle("rte-show", true);
         }
       }
@@ -157,20 +165,23 @@ export class CdkSuggestionComponent {
     this.selectedIndex = 0;
   };
 
-  onValueChange = (event: Event):boolean => {
+  onValueChange = (event: Event): boolean => {
     let ev = event as InputEvent;
     if (
       ev.data &&
-      (this.isVisible === false || (this.isVisible && this.filteredSuggestions.length == 0))
+      (this.isVisible === false ||
+        (this.isVisible && this.filteredSuggestions.length == 0))
     ) {
-      this.getSuggestionList && this.getSuggestionList(ev.data).then((suggestion) => {
-        this.show(false);
-        this.setTrigger(suggestion);
-        return this.show(true);
-      })
-      .catch((reason: any) => {
-        // console.log(reason);
-      });
+      this.getSuggestionList &&
+        this.getSuggestionList(ev.data)
+          .then((suggestion) => {
+            this.show(false);
+            this.setTrigger(suggestion);
+            return this.show(true);
+          })
+          .catch((reason: any) => {
+            // console.log(reason);
+          });
     }
     if (this.isVisible) {
       this._updateQuery();
@@ -178,7 +189,6 @@ export class CdkSuggestionComponent {
     }
     return false;
   };
-
 
   private _moveSelected = (step: number): boolean => {
     let currentIndex = this.selectedIndex;
@@ -189,49 +199,64 @@ export class CdkSuggestionComponent {
       return false;
     }
 
-    newIndex = (newIndex + this.filteredSuggestions.length) % this.filteredSuggestions.length;
+    newIndex =
+      (newIndex + this.filteredSuggestions.length) %
+      this.filteredSuggestions.length;
     this.selectedIndex = newIndex;
     const selectedChild = this.container.nativeElement.childNodes[newIndex];
 
     if (selectedChild && selectedChild instanceof HTMLElement) {
       let itemRect = selectedChild.getBoundingClientRect();
-      let containerRect = this.container.nativeElement.getBoundingClientRect()
+      let containerRect = this.container.nativeElement.getBoundingClientRect();
 
       if (itemRect.top < containerRect.top) {
-        this.container.nativeElement.scrollBy(0, itemRect.top - containerRect.top);
+        this.container.nativeElement.scrollBy(
+          0,
+          itemRect.top - containerRect.top
+        );
       } else if (itemRect.bottom > containerRect.bottom) {
-        this.container.nativeElement.scrollBy(0, itemRect.bottom - containerRect.bottom);
+        this.container.nativeElement.scrollBy(
+          0,
+          itemRect.bottom - containerRect.bottom
+        );
       }
       return true;
     } else {
       return false;
     }
-  }
+  };
 
   private _enterSuggestion = (event: Event) => {
-    if (this.selectedIndex >= 0 && this.selectedIndex < this.filteredSuggestions.length) {
+    if (
+      this.selectedIndex >= 0 &&
+      this.selectedIndex < this.filteredSuggestions.length
+    ) {
       event.preventDefault();
       this.select.emit({
         event: event,
         item: this.filteredSuggestions[this.selectedIndex],
-        triggerIndex: this.triggerIndex
+        triggerIndex: this.triggerIndex,
       });
     }
-  }
+  };
 
   private _updateQuery = () => {
     const selection = window.getSelection();
     if (selection && this.startedNode && selection.rangeCount > 0) {
       this.currentRange = selection.getRangeAt(0);
 
-      if (selection.focusNode && this.startedNode && selection.focusNode == this.startedNode) {
+      if (
+        selection.focusNode &&
+        this.startedNode &&
+        selection.focusNode == this.startedNode
+      ) {
         if (selection.focusOffset >= this.startedOffset) {
           const text = (selection.focusNode as Text).textContent;
           if (text) {
             this.query = text.slice(this.startedOffset, selection.focusOffset);
             this.filterItems(this.query);
             this.hashtagKeywords.emit(this.query);
-            (this.filteredSuggestions)
+            this.filteredSuggestions;
             this.selectedIndex = 0;
             return;
           }
@@ -242,5 +267,5 @@ export class CdkSuggestionComponent {
     if (this.isVisible) {
       this.show(false);
     }
-  }
+  };
 }
