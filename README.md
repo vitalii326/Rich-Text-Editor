@@ -1,27 +1,131 @@
-# Rte
+# Recruitler Rich Text Editor
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.1.
+A powerful, feature-rich Angular component for creating modern rich text editing experiences.
 
-## Development server
+## Overview
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+This repository contains two main parts:
+1. **Rich Text Editor (RTE) NPM Package**: A standalone Angular library for rich text editing (`@recruitler/rte`)
+2. **Example Application**: A demo application showcasing the editor's capabilities and implementation examples
 
-## Code scaffolding
+![Recruitler RTE Screenshot](./src/assets/rte-screenshot.png)
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Features
 
-## Build
+- **Modern Angular Integration**: Built for Angular 19+, with standalone components
+- **Rich Formatting Options**: Bold, italic, underline, headings, lists, code blocks, and more
+- **Hashtag Support**: Smart hashtag detection, autocompletion, and custom rendering
+- **Image Upload**: Built-in image handling with upload progress indicators
+- **Emoji Support**: Integrated emoji picker
+- **Custom Components**: Ability to embed custom Angular components within the editor
+- **Accessible**: Built with accessibility in mind
+- **Customizable Toolbar**: Flexible toolbar configuration
+- **Control Value Accessor**: Seamless integration with Angular forms
+- **Suggestions/Mentions**: Smart suggestion system for hashtags and mentions
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+## Getting Started
 
-## Running unit tests
+### Installation
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+```bash
+npm install @recruitler/rte --save
+```
 
-## Running end-to-end tests
+### Basic Implementation
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+```typescript
+import { Component } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { CdkRichTextEditorComponent } from '@recruitler/rte';
 
-## Further help
+@Component({
+  selector: 'app-editor',
+  template: `
+    <recruitler-rte
+      [formControl]="content"
+      placeholder="Start typing..."
+    ></recruitler-rte>
+  `,
+  imports: [ReactiveFormsModule, CdkRichTextEditorComponent],
+})
+export class EditorComponent {
+  content = new FormControl('');
+}
+```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+### Advanced Implementation
+
+Check out the demo application in `src/app/demo-editor` for a comprehensive example of advanced features like:
+
+- Custom hashtag handling
+- Image upload integration
+- Toolbar customization
+- Custom component embedding
+
+## Development
+
+### Running the Demo App
+
+1. Clone this repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm start
+   ```
+4. Navigate to `http://localhost:3333/`
+
+### Building the Library
+
+```bash
+npm run build
+```
+
+### Publishing the Library
+
+See `build&publish.txt` for detailed publishing instructions.
+
+## Key Components
+
+- `CdkRichTextEditorComponent`: The main editor component
+- `CdkSuggestionComponent`: Manages suggestions/mentions dropdowns
+- `CircularProgressComponent`: Loading indicator for image uploads
+
+## Usage Notes
+
+### Handling Hashtags
+
+The RTE uses a special format for hashtags:
+```
+-##-{"id":"xxxx", "content":"existing"}-##-
+```
+
+For hashtags without database counterparts:
+```
+#nonexisting
+```
+
+### Angular '@' Symbol Handling
+
+In Angular templates, the '@' character is used for control flow syntax. When displaying a literal '@' character in templates, use one of these methods:
+
+1. Double curly braces with quotes: `{{ '@' }}`
+2. HTML entity: `&#64;`
+
+Example:
+```html
+<!-- Correct -->
+<a href="/{{ '@' }}username">Profile</a>
+<!-- or -->
+<a href="/&#64;username">Profile</a>
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the terms found in the LICENSE file at the root of this repository.
