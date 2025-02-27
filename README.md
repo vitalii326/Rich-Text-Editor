@@ -5,6 +5,7 @@ A powerful, feature-rich Angular component for creating modern rich text editing
 ## Overview
 
 This repository contains two main parts:
+
 1. **Rich Text Editor (RTE) NPM Package**: A standalone Angular library for rich text editing (`@recruitler/rte`)
 2. **Example Application**: A demo application showcasing the editor's capabilities and implementation examples
 
@@ -34,22 +35,17 @@ npm install @recruitler/rte --save
 ### Basic Implementation
 
 ```typescript
-import { Component } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { CdkRichTextEditorComponent } from '@recruitler/rte';
+import { Component } from "@angular/core";
+import { FormControl, ReactiveFormsModule } from "@angular/forms";
+import { CdkRichTextEditorComponent } from "@recruitler/rte";
 
 @Component({
-  selector: 'app-editor',
-  template: `
-    <recruitler-rte
-      [formControl]="content"
-      placeholder="Start typing..."
-    ></recruitler-rte>
-  `,
+  selector: "app-editor",
+  template: ` <recruitler-rte [formControl]="content" placeholder="Start typing..."></recruitler-rte> `,
   imports: [ReactiveFormsModule, CdkRichTextEditorComponent],
 })
 export class EditorComponent {
-  content = new FormControl('');
+  content = new FormControl("");
 }
 ```
 
@@ -98,11 +94,13 @@ See `build&publish.txt` for detailed publishing instructions.
 ### Handling Hashtags
 
 The RTE uses a special format for hashtags:
+
 ```
 -##-{"id":"xxxx", "content":"existing"}-##-
 ```
 
 For hashtags without database counterparts:
+
 ```
 #nonexisting
 ```
@@ -115,6 +113,7 @@ In Angular templates, the '@' character is used for control flow syntax. When di
 2. HTML entity: `&#64;`
 
 Example:
+
 ```html
 <!-- Correct -->
 <a href="/{{ '@' }}username">Profile</a>
@@ -122,9 +121,63 @@ Example:
 <a href="/&#64;username">Profile</a>
 ```
 
+### Use in Recruitler's main app
+
+```typescript
+
+<!-- hashtag search dropdown -->
+<ng-template
+  #hashtagItemTemplate
+  let-value
+  let-active="active">
+  <div
+    class="suggestion-item"
+    [class.selected]="active">
+    <p>{{ value }}</p>
+  </div>
+</ng-template>
+
+<!-- inline hashtag component -->
+<ng-template
+  #hashtagTemplate
+  let-value="value">
+  <lib-hashtag
+    [hashtag]="value"
+    contenteditable="false"
+    [countable]="false"
+    [likeable]="false" />
+</ng-template>
+
+<div class="compose__editable">
+  <recruitler-rte
+    #editor
+    [imgUrl]="imgUrl()"
+    [imgAccountId]="imgAccountId()"
+    [variant]="variant()"
+    [theme]="currentTheme()"
+    [ngModel]="contentControl()"
+    (ngModelChange)="onContentChange($event)"
+    [hashtagItemTemplate]="hashtagItemTemplate"
+    [hashtagTemplate]="hashtagTemplate"
+    (hashtagRequest)="hashtagSearch($event)"
+    [hashtagResults]="hashtagResults()"
+    [uploadImageResult]="uploadImageResult()"
+    (uploadImageRequest)="onUpload($event)"
+    placeholder="What's your experience?"
+    (count)="counter($event)"
+    (focus)="onFocus()"
+    (blur)="onBlur()" />
+  <p
+    class="count"
+    [ngClass]="{ warning: formState().count < 10, error: formState().count < 0 }">
+    {{ formState().count }}
+  </p>
+</div>
+```
+
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome and needed! Please feel free to chat, or submit a Pull Request.
 
 ## License
 
