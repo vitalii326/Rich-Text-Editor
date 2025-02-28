@@ -42,6 +42,13 @@ export class CdkSuggestionComponent {
   currentRange!: Range | undefined;
   query = "";
 
+  @Input() recentSuggestions: CdkSuggestionItem[] = [];
+  @Input() popularSuggestions: CdkSuggestionItem[] = [];
+
+  trackItem = (index: number, item: CdkSuggestionItem): string => {
+    return item.key;
+  };
+
   filter!: (query: string, item: CdkSuggestionItem) => boolean;
 
   defaultFilter = (query: string, item: CdkSuggestionItem) => {
@@ -188,6 +195,10 @@ export class CdkSuggestionComponent {
       return true;
     }
     return false;
+  };
+
+  onItemHover = (index: number): void => {
+    this.selectedIndex = index;
   };
 
   private _moveSelected = (step: number): boolean => {

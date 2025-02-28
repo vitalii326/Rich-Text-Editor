@@ -11,6 +11,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "19.1.7",
+    "@angular/cdk": "^19.2.1",
     "@angular/common": "19.1.7",
     "@angular/compiler": "19.1.7",
     "@angular/core": "19.1.7",
@@ -18,8 +19,8 @@
     "@angular/platform-browser": "19.1.7",
     "@angular/platform-browser-dynamic": "19.1.7",
     "@angular/router": "19.1.7",
-    "@uploadcare/upload-client": "6.14.3",
     "@ctrl/ngx-emoji-mart": "^9.2.0",
+    "@uploadcare/upload-client": "6.14.3",
     "ace-builds": "1.39.0",
     "highlight.js": "11.11.1",
     "html-to-text": "9.0.5",
@@ -39,6 +40,7 @@
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.1",
     "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0"
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "ng-packagr": "^19.2.0"
   }
 }

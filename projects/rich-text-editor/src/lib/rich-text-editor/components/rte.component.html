@@ -39,6 +39,8 @@
   <rte-suggestion
     #suggestion
     [getSuggestionList]="getSuggestionList"
+    [recentSuggestions]="recentSuggestions"
+    [popularSuggestions]="popularSuggestions"
     (hashtagKeywords)="onHashgtagKeywords($event)"
     (cdkSuggestionSelected)="onSuggestionSelected($event)"
   />

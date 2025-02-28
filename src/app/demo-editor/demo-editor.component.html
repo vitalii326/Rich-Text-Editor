@@ -52,6 +52,7 @@
     [uploadImageResult]="uploadImageResult"
     (linkRequest)="useLinks($event)"
     [formControl]="content"
+    [placeholder]="'Type something...'"
   />
   <p class="count" [ngClass]="{ warning: chars < 10, error: chars < 0 }">
     {{ chars }}
