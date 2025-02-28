@@ -12,3 +12,11 @@ end_of_line = lf
 [*.md]
 max_line_length = off
 trim_trailing_whitespace = false
+
+[README.md]
+max_line_length = off
+trim_trailing_whitespace = false
+indent_style = unset
+indent_size = unset
+end_of_line = unset
+charset = unset

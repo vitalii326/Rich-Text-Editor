@@ -123,8 +123,7 @@ Example:
 
 ### Use in Recruitler's main app
 
-```typescript
-
+```html
 <!-- hashtag search dropdown -->
 <ng-template
   #hashtagItemTemplate

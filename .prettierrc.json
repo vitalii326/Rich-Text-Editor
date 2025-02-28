@@ -1,0 +1,11 @@
+{
+  "overrides": [
+    {
+      "files": "README.md",
+      "options": {
+        "parser": "markdown",
+        "proseWrap": "preserve"
+      }
+    }
+  ]
+}
