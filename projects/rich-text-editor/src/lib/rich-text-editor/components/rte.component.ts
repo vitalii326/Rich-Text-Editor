@@ -90,45 +90,48 @@ export class CdkRichTextEditorComponent
   defaultToolbarItems!: CdkToolbarItemSetting[];
   @Input("cdkSuggestions") suggestions: CdkSuggestionSetting[] = [];
   @Input("cdkSuggestionEnabled") suggestionEnabled: boolean = true;
-  @Input("cdkContent") content: string = "";
   @Input("hashtagItemTemplate") hashtagItemTemplate!: TemplateRef<any>;
   @Input("hashtagTemplate") hashtagTemplate!: TemplateRef<any>;
+  @Input() recentSuggestions: CdkSuggestionItem[] = [];
+  @Input() popularSuggestions: CdkSuggestionItem[] = [];
+  @Input() theme: 'light-theme' | 'dark-theme' = 'light-theme';
+  @Input() placeholder: string = '';
+  @Input() imgUrl!: string;
+  @Input() imgAccountId?: string | null;
+  @Input() variant?: string | null;
   @Input() set hashtagResults(val: CdkSuggestionItem[]) {
     this._setHashtagResults(val);
   }
   @Input() set uploadImageResult(val: IIMageRes) {
     this._setImage(val);
   }
-  @Input() disabled: boolean | string = false;
-  @Input() placeholder: string = "";
-  @Input() theme: "light-theme" | "dark-theme" = "light-theme";
-  @Input() imgUrl!: string;
-  @Input() imgAccountId?: string | null;
-  @Input() variant?: string | null;
+
   // OUTPUTS
   @Output("uploadImageRequest") uploadImageRequest =
     new EventEmitter<IUploadReq>();
-  @Output("cdkEditorSelectionChanged") selectionChanged =
-    new EventEmitter<Selection>();
   @Output("hashtagRequest") hashtagRequest = new EventEmitter<string>();
+  @Output("count") count = new EventEmitter<number>();
+  @Output("linkRequest") linkRequest = new EventEmitter<any>();
   @Output() focus = new EventEmitter();
   @Output() blur = new EventEmitter();
-  @Output("linkRequest") linkRequest = new EventEmitter<string[]>();
-  @Output("count") count = new EventEmitter<number>();
-  // vars
-  touched = false;
-  isSuggestionVisible: boolean = false;
-  isUploading = false;
+  @Output("cdkEditorSelectionChanged") selectionChanged =
+    new EventEmitter<Selection>();
+
+  // STATES
   toolbarItems: ToolbarItem[] = [];
-  suggestionList$: BehaviorSubject<CdkSuggestionItem[]> = new BehaviorSubject<
-    CdkSuggestionItem[]
-  >([]);
-  suggestionSelectionTemplate!: TemplateRef<any>;
-  links: string[] = [];
-  codeEditors: any = [];
-  editorEdgeStatus: "top" | "in" | "bottom" | "empty" = "in"; // Code editor cursor stauts
+  isUploading: boolean = false;
+  touched: boolean = false;
   isVisibleEmojiModal: boolean = false;
   private savedSelection: Range | null = null;
+  codeEditors: any[] = [];
+  editorEdgeStatus: "top" | "in" | "bottom" | "empty" = "in";
+  links: string[] = [];
+  suggestionList$ = new BehaviorSubject<CdkSuggestionItem[]>([]);
+
+  private _content: string = '';
+  private _disabled: boolean = false;
+  private _onChange: (value: any) => void = () => {};
+  private _onTouched: () => void = () => {};
 
   constructor(private domSantanizer: SafeDOMPipe) {
     this.toolbarItems = TOOLBAR_ITEMS.map((item) => ({
@@ -140,7 +143,7 @@ export class CdkRichTextEditorComponent
 
   ngAfterViewInit() {
     this.richText.nativeElement.spellcheck = false;
-    this.loadContent(this.content);
+    this.loadContent(this._content);
   }
 
   ngAfterContentChecked() {
@@ -562,24 +565,20 @@ export class CdkRichTextEditorComponent
         reject("");
         return;
       }
-
       this.hashtagRequest.emit("");
-
-      setTimeout(() => {
-        this.suggestionList$.pipe(take(1)).subscribe((hashtagList: any) => {
-          if (hashtagList) {
-            resolve({
-              data: hashtagList,
-              tag: HASHTAG,
-              itemTemplate: this.hashtagItemTemplate,
-              selectionTemplate: this.hashtagTemplate,
-              trigger: HASHTAG_TRIGGER,
-            });
-          } else {
-            reject("");
-          }
-        });
-      }, 300);
+      this.suggestionList$.pipe(take(1)).subscribe((hashtagList: any) => {
+        if (hashtagList && hashtagList.length > 0) {
+          resolve({
+            data: hashtagList,
+            tag: HASHTAG,
+            itemTemplate: this.hashtagItemTemplate,
+            selectionTemplate: this.hashtagTemplate,
+            trigger: HASHTAG_TRIGGER,
+          });
+        } else {
+          reject("");
+        }
+      });
     });
   };
 
@@ -691,7 +690,7 @@ export class CdkRichTextEditorComponent
     this._contentChanged();
   };
 
-  private _setHashtagResults(items: CdkSuggestionItem[]): void {
+  private _setHashtagResults = (items: CdkSuggestionItem[]): void => {
     this.suggestionList$.next(items);
   }
 
@@ -848,9 +847,9 @@ export class CdkRichTextEditorComponent
       const content = this.getEditorContent();
 
       if (content.startsWith("SafeValue must use")) {
-        this.onChange(content.substring(39, content.length - 35));
+        this._onChange(content.substring(39, content.length - 35));
       } else {
-        this.onChange(content);
+        this._onChange(content);
       }
     }, 100);
 
@@ -859,35 +858,50 @@ export class CdkRichTextEditorComponent
   };
 
   // CONTROL VALUE ACCESSOR & INPUT METHODS
-  writeValue(value: string): void {
+  writeValue(value: any): void {
+    this._content = value || '';
+    this._disabled = false;  // Ensure editor is not disabled by default
     setTimeout(() => {
-      this.loadContent(value);
+      this.loadContent(this._content);
       this.formatCodeEditors();
     }, 10);
-    this.content = value;
   }
 
-  onChange = (value: any) => {};
-
-  onTouched = () => {};
-
-  registerOnChange(onChange: any): void {
-    this.onChange = onChange;
+  registerOnChange(fn: any): void {
+    this._onChange = fn;
   }
 
-  registerOnTouched(onTouched: any): void {
-    this.onTouched = onTouched;
+  registerOnTouched(fn: any): void {
+    this._onTouched = fn;
   }
 
-  // not using?
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
-    this.disableCodeEditors(this.disabled);
+    this._disabled = isDisabled;
+    if (this.richText) {
+      this.richText.nativeElement.contentEditable = (!isDisabled).toString();
+    }
+  }
+  get disabled(): boolean {
+    return this._disabled;
   }
 
+  set disabled(value: boolean) {
+    this._disabled = value;
+    if (this.richText) {
+      this.richText.nativeElement.contentEditable = (!value).toString();
+    }
+  }
+  get content(): string {
+    return this._content;
+  }
+
+  set content(value: string) {
+    this._content = value;
+    this._contentChanged();
+  }
   markAsTouched() {
     if (!this.touched) {
-      this.onTouched();
+      this._onTouched();
       this.touched = true;
     }
   }
@@ -914,7 +928,7 @@ export class CdkRichTextEditorComponent
       // empty?
     }
 
-    // Focuse code editor when input cursor is in the editor
+    // Focus code editor when input cursor is in the editor
     setTimeout(() => {
       const selection = window.getSelection();
       const currentNode = selection!.focusNode;
@@ -925,7 +939,8 @@ export class CdkRichTextEditorComponent
     }, 10);
 
     if (this.suggestionEnabled) {
-      if (this.suggestion.onKeyDown(event)) {
+      const handled = this.suggestion.onKeyDown(event);
+      if (handled) {
         return;
       }
     }
@@ -978,21 +993,15 @@ export class CdkRichTextEditorComponent
     }, 0);
   };
 
-  onDrop = (event: DragEvent) => {
-    if (!event.dataTransfer?.files[0]) return;
-
-    let file = event.dataTransfer.files[0];
-    let x = event.clientX;
-    let y = event.clientY;
-    if (file && file.type.startsWith("image/")) {
-      event.preventDefault();
-      event.stopPropagation();
-      const range = getRangeFromPosition(x, y);
-      this.handleFile(file, range);
-    }
+  onDragOver = (event: DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
   };
 
-  onDragOver = (event: Event) => {};
+  onDrop = (event: DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
 
   onPaste = (event: ClipboardEvent) => {
     if (this.disabled) return;
@@ -1019,6 +1028,58 @@ export class CdkRichTextEditorComponent
       return;
     }
   };
+
+  addEmoji(event: any) {
+    this.isVisibleEmojiModal = false;
+    this.insertText(event.emoji.native);
+  }
+
+  private insertText(content: string) {
+    if (this.savedSelection) {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        selection.removeAllRanges();
+        selection.addRange(this.savedSelection);
+
+        const range = this.savedSelection;
+        range.deleteContents();
+
+        const textNode = document.createTextNode(content);
+        range.insertNode(textNode);
+
+        // Move the caret after the inserted content
+        range.setStartAfter(textNode);
+        range.setEndAfter(textNode);
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        this._contentChanged();
+      }
+    }
+  }
+
+  private saveSelection() {
+    // Get the current selection
+    const selection = window.getSelection();
+
+    if (selection) {
+      const anchorNode = selection.anchorNode;
+      const focusNode = selection.focusNode;
+
+      // Check if the selection is within the richTextEditor
+      const isSelectionInDiv =
+        this.richText.nativeElement.contains(anchorNode) &&
+        this.richText.nativeElement.contains(focusNode);
+
+      if (isSelectionInDiv)
+        this.savedSelection = selection.getRangeAt(0).cloneRange();
+    }
+  }
+
+  showEmoji() {
+    this.isVisibleEmojiModal = true;
+    this.saveSelection();
+  }
 
   onFocusIn = () => {
     this.focus.emit();
@@ -1158,57 +1219,5 @@ export class CdkRichTextEditorComponent
         }
       }, 10);
     });
-  }
-
-  addEmoji(event: any) {
-    this.isVisibleEmojiModal = false;
-    this.insertText(event.emoji.native);
-  }
-
-  private insertText(content: string) {
-    if (this.savedSelection) {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        selection.removeAllRanges();
-        selection.addRange(this.savedSelection);
-
-        const range = this.savedSelection;
-        range.deleteContents();
-
-        const textNode = document.createTextNode(content);
-        range.insertNode(textNode);
-
-        // Move the caret after the inserted content
-        range.setStartAfter(textNode);
-        range.setEndAfter(textNode);
-        selection.removeAllRanges();
-        selection.addRange(range);
-
-        this._contentChanged();
-      }
-    }
-  }
-
-  private saveSelection() {
-    // Get the current selection
-    const selection = window.getSelection();
-
-    if (selection) {
-      const anchorNode = selection.anchorNode;
-      const focusNode = selection.focusNode;
-
-      // Check if the selection is within the richTextEditor
-      const isSelectionInDiv =
-        this.richText.nativeElement.contains(anchorNode) &&
-        this.richText.nativeElement.contains(focusNode);
-
-      if (isSelectionInDiv)
-        this.savedSelection = selection.getRangeAt(0).cloneRange();
-    }
-  }
-
-  showEmoji() {
-    this.isVisibleEmojiModal = true;
-    this.saveSelection();
   }
 }

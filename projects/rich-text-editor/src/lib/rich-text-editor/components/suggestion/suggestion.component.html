@@ -1,16 +1,24 @@
-<ul #container class="rte-suggestion-box">
-  @if (!!filteredSuggestions.length) { @for (suggestion of filteredSuggestions;
-  let i = $index; track suggestion.key) {
-  <li (click)="onClick($event, suggestion)">
-    <ng-container
-      *ngTemplateOutlet="
-        itemTemplate;
-        context: {
-          $implicit: suggestion.value.name,
-          active: i == selectedIndex
-        }
-      "
-    />
-  </li>
-  } }
-</ul>
+<div #container class="rte-suggestion-container">
+  <ng-container *ngIf="isVisible">
+    <ng-container *ngIf="filteredSuggestions.length === 0">
+      <div class="rte-suggestion-item no-results">
+        No Results Found
+      </div>
+    </ng-container>
+    <ng-container *ngIf="filteredSuggestions.length > 0">
+      <ng-container *ngFor="let item of filteredSuggestions; trackBy: trackItem; let i = index">
+        <div
+          class="rte-suggestion-item"
+          [class.selected]="selectedIndex === i"
+          (mouseenter)="onItemHover(i)"
+          (click)="onClick($event, item)"
+        >
+          <ng-container
+            [ngTemplateOutlet]="itemTemplate"
+            [ngTemplateOutletContext]="{ $implicit: item.value, active: selectedIndex === i }"
+          />
+        </div>
+      </ng-container>
+    </ng-container>
+  </ng-container>
+</div>
