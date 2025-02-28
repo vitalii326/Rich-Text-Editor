@@ -37,10 +37,9 @@ import { SafeDOMPipe } from "../pipes/safe-dom.pipe";
 import {
   focusElementWithRange,
   focusElementWithRangeIfNotFocused,
-  getRangeFromPosition,
   isRectEmpty,
   makeLiveHashtags,
-  makeLiveImagetags,
+  makeLiveImagetags
 } from "../utils/DOM";
 import {
   HASHTAG,
@@ -68,15 +67,13 @@ import { CdkSuggestionComponent } from "./suggestion/suggestion.component";
   imports: [
     CdkSuggestionComponent,
     CircularProgressComponent,
-    SafeDOMPipe,
     CommonModule,
     PickerComponent,
   ],
   encapsulation: ViewEncapsulation.None,
 })
 export class CdkRichTextEditorComponent
-  implements ControlValueAccessor, AfterViewInit, AfterContentChecked
-{
+  implements ControlValueAccessor, AfterViewInit, AfterContentChecked {
   @ViewChild("richText") richText!: ElementRef<HTMLElement>;
   @ViewChild("richText", { read: ViewContainerRef })
   richTextContainer!: ViewContainerRef;
@@ -130,8 +127,8 @@ export class CdkRichTextEditorComponent
 
   private _content: string = '';
   private _disabled: boolean = false;
-  private _onChange: (value: any) => void = () => {};
-  private _onTouched: () => void = () => {};
+  private _onChange: (value: any) => void = () => { };
+  private _onTouched: () => void = () => { };
 
   constructor(private domSantanizer: SafeDOMPipe) {
     this.toolbarItems = TOOLBAR_ITEMS.map((item) => ({
@@ -807,7 +804,7 @@ export class CdkRichTextEditorComponent
         const realHashtag = document.createElement("span");
         const viewRef: EmbeddedViewRef<Node> =
           this.hashtagTemplate.createEmbeddedView({
-            value: { name: item.value.name },
+            value: { name: item.value },
           });
         this.richTextContainer.insert(viewRef);
         for (let node of viewRef.rootNodes) {

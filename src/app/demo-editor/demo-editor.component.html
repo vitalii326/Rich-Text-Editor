@@ -16,14 +16,22 @@
 </ng-template>
 
 <ng-template #hashtagItemTemplate let-value let-active="active">
-  <div class="suggestion-item" [class.selected]="active">
-    <b>{{ value }}</b>
+  <div class="suggestion-item" [class.selected]="!value?.isHint && active" [class.hint]="value?.isHint">
+    <ng-container *ngIf="value?.isHint">
+      <span class="hint-text">{{ value.name }}</span>
+    </ng-container>
+    <ng-container *ngIf="!value?.isHint">
+      <b>{{ value }}</b>
+    </ng-container>
   </div>
 </ng-template>
 
 <ng-template #hashtagSelectionTemplate let-value="value">
-  <app-hashtag> {{ value?.name ? "#" + value?.name : "" }} </app-hashtag>
+  <app-hashtag>
+    {{ '#' + value.name }}
+  </app-hashtag>
 </ng-template>
+
 
 <h2>Recruitler.com's Rich Text Editor</h2>
 <button (click)="onBtnClick('emoji')">Emoji</button>

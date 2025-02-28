@@ -1,6 +1,6 @@
 <ng-template #defaultToolbar>
   <div class="rte-toolbar-btn-group rte-popup">
-    @for (item of toolbarItems; track item.action) {
+    @for (item of toolbarItems; track $index) {
     <button
       class="rte-toolbar-btn"
       [class.rte-active]="item.active"

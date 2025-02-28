@@ -25,6 +25,7 @@
     
   }
 }
+
 recruitler-rte {
   display: block;
   height: auto;
@@ -83,7 +84,20 @@ recruitler-rte {
   &.selected {
     background-color: rgb(251, 255, 0);
   }
-  &:hover {
-    background-color: rgb(0, 128, 11);
+
+  &.hint {
+    cursor: default;
+    pointer-events: none;
+    background-color: transparent;
+    
+    .hint-text {
+      color: #666;
+      font-style: italic;
+      font-size: 0.9em;
+    }
+  }
+
+  b {
+    font-weight: 500;
   }
 }

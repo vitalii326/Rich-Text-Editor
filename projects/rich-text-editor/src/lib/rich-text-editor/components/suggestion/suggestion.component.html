@@ -6,19 +6,19 @@
       </div>
     </ng-container>
     <ng-container *ngIf="filteredSuggestions.length > 0">
-      <ng-container *ngFor="let item of filteredSuggestions; trackBy: trackItem; let i = index">
-        <div
-          class="rte-suggestion-item"
+    <ng-container *ngFor="let item of filteredSuggestions; trackBy: trackItem; let i = index">
+      <div
+        class="rte-suggestion-item"
           [class.selected]="selectedIndex === i"
           (mouseenter)="onItemHover(i)"
           (click)="onClick($event, item)"
-        >
-          <ng-container
-            [ngTemplateOutlet]="itemTemplate"
-            [ngTemplateOutletContext]="{ $implicit: item.value, active: selectedIndex === i }"
-          />
-        </div>
-      </ng-container>
+      >
+        <ng-container
+          [ngTemplateOutlet]="itemTemplate"
+          [ngTemplateOutletContext]="{ $implicit: item.value, active: selectedIndex === i }"
+        />
+      </div>
     </ng-container>
+  </ng-container>
   </ng-container>
 </div>

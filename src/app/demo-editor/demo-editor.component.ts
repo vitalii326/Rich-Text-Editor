@@ -22,6 +22,10 @@ import {
   IIMageRes,
 } from "projects/rich-text-editor/src/lib/rich-text-editor/interfaces";
 
+interface EnhancedSuggestionItem extends CdkSuggestionItem {
+  isHint?: boolean;
+}
+
 export enum MarkTypes {
   bold = "bold",
   italic = "italic",
@@ -48,7 +52,7 @@ const LIST_TYPES = ["numbered-list", "bulleted-list"];
     </span>
   `,
 })
-export class UnusualInlineComponent {}
+export class UnusualInlineComponent { }
 
 @Component({
   selector: "app-demo-editor",
@@ -76,7 +80,7 @@ export class DemoEditorComponent implements OnInit {
   @ViewChild("editor", { read: CdkRichTextEditorComponent, static: true })
   editor!: CdkRichTextEditorComponent;
   // hashtag search results
-  hashtagResults: CdkSuggestionItem[] = [];
+  hashtagResults: EnhancedSuggestionItem[] = [];
   // media uploaded and returned
   uploadImageResult: IIMageRes = { url: "", elem: { src: "" } };
   // the RTE formControl
@@ -93,6 +97,8 @@ export class DemoEditorComponent implements OnInit {
   suggestions: CdkSuggestionSetting[] = [];
   suggestionEnabled = true;
   //
+
+
   toolbarItems: CdkToolbarItemSetting[] = [
     {
       action: "bold",
@@ -120,7 +126,7 @@ export class DemoEditorComponent implements OnInit {
   imgAccountId: string | null = null;
   variant: string | null = null;
 
-  constructor(private formBuilder: FormBuilder) {}
+  constructor(private formBuilder: FormBuilder) { }
 
   ngOnInit(): void {
     this.content.valueChanges.subscribe((value) => {
@@ -170,6 +176,14 @@ export class DemoEditorComponent implements OnInit {
             key: "Blue",
             value: "Blue",
           },
+          {
+            key: "Black",
+            value: "Black",
+          },
+          {
+            key: "Grey",
+            value: "Grey",
+          },
         ],
       },
     ];
@@ -197,20 +211,25 @@ export class DemoEditorComponent implements OnInit {
 
   // mock hashtag search request - you will use your app's hashtag API
   hashtagSearch(term: string): void {
-    this.hashtagResults = [
-      {
-        key: "Red",
-        value: { name: "Red" },
-      },
-      {
-        key: "Green",
-        value: { name: "Green" },
-      },
-      {
-        key: "Blue",
-        value: { name: "Blue" },
-      },
-    ];
+    const hashtagSuggestion = this.suggestions.find(s => s.trigger === "#");
+
+    if (hashtagSuggestion && hashtagSuggestion.data) {
+      const filtered = hashtagSuggestion.data.filter(item =>
+        item.key.toLowerCase().includes(term.toLowerCase())
+      );
+
+      // If no matches found, show a helpful message
+      this.hashtagResults = filtered;
+      this.editor.hashtagResults = this.hashtagResults;
+    } else {
+      // If no hashtag data available
+      this.hashtagResults = [{
+        key: 'no-hashtags',
+        value: { name: 'No hashtags available' },
+        isHint: true
+      }];
+      this.editor.hashtagResults = this.hashtagResults;
+    }
   }
 
   // the quick toolbar need improvement
