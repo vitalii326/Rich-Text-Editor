@@ -63,7 +63,9 @@ export class CdkSuggestionComponent {
   };
 
   show = (visible: boolean) => {
+    console.log("show() called with:", visible);
     this.isVisible = visible;
+
     if (!visible) {
       this.container.nativeElement.classList.toggle("rte-show", false);
       this.query = "";
@@ -75,37 +77,36 @@ export class CdkSuggestionComponent {
     }
 
     const selection = window.getSelection();
+    if (selection && selection.isCollapsed && selection.rangeCount > 0) {
+      if (this.startedNode == undefined) {
+        this.startedNode = selection.getRangeAt(0).endContainer;
+        this.startedOffset = selection.getRangeAt(0).endOffset;
+      }
 
-    if (selection) {
-      if (selection.isCollapsed && selection.rangeCount > 0) {
-        if (this.startedNode == undefined) {
-          this.startedNode = selection.getRangeAt(0).endContainer;
-          this.startedOffset = selection.getRangeAt(0).endOffset;
-        }
+      this.currentRange = selection.getRangeAt(0);
+      let rect = selection.getRangeAt(0).getBoundingClientRect();
+      if (isRectEmpty(rect)) {
+        rect = (selection.getRangeAt(0).startContainer as Element).getBoundingClientRect();
+      }
 
-        this.currentRange = selection.getRangeAt(0);
-
-        let rect = selection.getRangeAt(0).getBoundingClientRect();
-        if (isRectEmpty(rect)) {
-          rect = (
-            selection.getRangeAt(0).startContainer as Element
-          ).getBoundingClientRect();
-        }
-
-        const editorRect =
-          this.container.nativeElement.parentElement?.getBoundingClientRect();
-        if (editorRect) {
-          this.container.nativeElement.style.top =
-            "" + (rect.bottom - editorRect.top) + "px";
-          this.container.nativeElement.style.left =
-            "" + (rect.right - editorRect.x) + "px";
-          this.container.nativeElement.classList.toggle("rte-show", true);
-        }
+      const editorRect = this.container.nativeElement.parentElement?.getBoundingClientRect();
+      if (editorRect) {
+        this.container.nativeElement.style.top = "" + (rect.bottom - editorRect.top) + "px";
+        this.container.nativeElement.style.left = "" + (rect.right - editorRect.x) + "px";
+        this.container.nativeElement.classList.toggle("rte-show", true);
       }
     }
   };
 
+
   onKeyDown = (event: KeyboardEvent): boolean => {
+    console.log("Key pressed:", event.key);
+
+    if (event.key == "#") {
+      console.log("Hashtag detected on first press");
+      this.show(true);
+    }
+
     if (event.key == "Escape") {
       this.show(false);
       return true;
@@ -135,6 +136,7 @@ export class CdkSuggestionComponent {
     if (event.key == "ArrowLeft" || event.key == "ArrowRight") {
       if (this.isVisible) setTimeout(() => this._updateQuery(), 0);
     }
+
     return false;
   };
 
@@ -174,28 +176,27 @@ export class CdkSuggestionComponent {
 
   onValueChange = (event: Event): boolean => {
     let ev = event as InputEvent;
-    if (
-      ev.data &&
-      (this.isVisible === false ||
-        (this.isVisible && this.filteredSuggestions.length == 0))
-    ) {
-      this.getSuggestionList &&
-        this.getSuggestionList(ev.data)
-          .then((suggestion) => {
-            this.show(false);
-            this.setTrigger(suggestion);
-            return this.show(true);
-          })
-          .catch((reason: any) => {
-            // console.log(reason);
-          });
+    const inputData = ev.data ?? ""; // Ensure inputData is always a string
+
+    if (inputData && this.getSuggestionList) {
+      this.getSuggestionList(inputData)
+        .then((suggestion) => {
+          this.setTrigger(suggestion);
+          this.show(true); // Ensure it appears immediately
+        })
+        .catch((reason: any) => {
+          console.error("Error fetching suggestions:", reason);
+        });
     }
+
     if (this.isVisible) {
       this._updateQuery();
       return true;
     }
+
     return false;
   };
+
 
   onItemHover = (index: number): void => {
     this.selectedIndex = index;

@@ -15,6 +15,8 @@ import {
   ViewEncapsulation,
   reflectComponentType,
 } from "@angular/core";
+import DOMPurify from "dompurify";
+const purify = DOMPurify;
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
 import { PickerComponent } from "@ctrl/ngx-emoji-mart";
 import { BehaviorSubject, take } from "rxjs";
@@ -75,8 +77,7 @@ import { CdkSuggestionComponent } from "./suggestion/suggestion.component";
   encapsulation: ViewEncapsulation.None,
 })
 export class CdkRichTextEditorComponent
-  implements ControlValueAccessor, AfterViewInit, AfterContentChecked
-{
+  implements ControlValueAccessor, AfterViewInit, AfterContentChecked {
   @ViewChild("richText") richText!: ElementRef<HTMLElement>;
   @ViewChild("richText", { read: ViewContainerRef })
   richTextContainer!: ViewContainerRef;
@@ -130,8 +131,8 @@ export class CdkRichTextEditorComponent
 
   private _content: string = '';
   private _disabled: boolean = false;
-  private _onChange: (value: any) => void = () => {};
-  private _onTouched: () => void = () => {};
+  private _onChange: (value: any) => void = () => { };
+  private _onTouched: () => void = () => { };
 
   constructor(private domSantanizer: SafeDOMPipe) {
     this.toolbarItems = TOOLBAR_ITEMS.map((item) => ({
@@ -812,7 +813,7 @@ export class CdkRichTextEditorComponent
         const realHashtag = document.createElement("span");
         const viewRef: EmbeddedViewRef<Node> =
           this.hashtagTemplate.createEmbeddedView({
-            value: { name: item.value.name },
+            value: { name: item.value },
           });
         this.richTextContainer.insert(viewRef);
         for (let node of viewRef.rootNodes) {
@@ -1015,7 +1016,7 @@ export class CdkRichTextEditorComponent
         const elem = document.createElement('img');
         elem.src = URL.createObjectURL(file);
         range.insertNode(elem);
-        
+
         this.uploadImageRequest.emit({
           file,
           elem
@@ -1042,7 +1043,7 @@ export class CdkRichTextEditorComponent
     while (brs.length > 0) {
       brs[0].parentNode?.removeChild(brs[0]);
     }
-    
+
     const spans = tempDiv.getElementsByTagName('span');
     while (spans.length > 0) {
       spans[0].parentNode?.removeChild(spans[0]);
@@ -1050,24 +1051,24 @@ export class CdkRichTextEditorComponent
 
     // Get the text content and clean it
     let text = tempDiv.textContent || '';
-    
+
     // Remove extra spaces and &nbsp;
     text = text.replace(/\s+/g, ' ')
-              .replace(/&nbsp;/g, ' ')
-              .trim();
-              
+      .replace(/&nbsp;/g, ' ')
+      .trim();
+
     // Remove any remaining HTML entities
     text = text.replace(/&[^;]+;/g, '');
-    
+
     return text;
   };
-  
+
   onPaste = (event: ClipboardEvent) => {
     event.preventDefault();
-  
+
     const clipboardData = event.clipboardData;
     if (!clipboardData) return;
-  
+
     // Handle image paste separately
     if (clipboardData.files.length) {
       const file = clipboardData.files[0];
@@ -1076,23 +1077,46 @@ export class CdkRichTextEditorComponent
         return;
       }
     }
-  
-    // Get HTML content from clipboard and sanitize it
-    const html = clipboardData.getData("text/html") || clipboardData.getData("text/plain");
-    const cleanText = this.cleanText(html);
-  
-    // Insert cleaned text at cursor position
+
+    // Get only plain text content from the clipboard
+    const plainText = clipboardData.getData("text/plain");
+
+    // Ensure it's sanitized (although plain text doesn't need much sanitization)
+    const sanitizedText = DOMPurify.sanitize(plainText, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+
+    // Insert sanitized plain text at cursor position
     const selection = window.getSelection();
     if (selection?.rangeCount) {
       selection.deleteFromDocument();
       const range = selection.getRangeAt(0);
-      const textNode = document.createTextNode(cleanText);
+      const textNode = document.createTextNode(sanitizedText); // Insert plain text
       range.insertNode(textNode);
       range.collapse(false);
     }
-  
+
     this._contentChanged();
   };
+  // New method to insert sanitized HTML content
+  private insertHtml(content: string): void {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount) {
+      const range = selection.getRangeAt(0);
+
+      // Clear any selected content
+      range.deleteContents();
+
+      // Create a document fragment from the sanitized HTML
+      const fragment = range.createContextualFragment(content);
+
+      // Insert the sanitized HTML into the editor at the current cursor position
+      range.insertNode(fragment);
+
+      // Move the caret after the inserted content
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  }
   addEmoji(event: any) {
     this.isVisibleEmojiModal = false;
     this.insertText(event.emoji.native);

@@ -48,7 +48,7 @@ const LIST_TYPES = ["numbered-list", "bulleted-list"];
     </span>
   `,
 })
-export class UnusualInlineComponent {}
+export class UnusualInlineComponent { }
 
 @Component({
   selector: "app-demo-editor",
@@ -120,7 +120,7 @@ export class DemoEditorComponent implements OnInit {
   imgAccountId: string | null = null;
   variant: string | null = null;
 
-  constructor(private formBuilder: FormBuilder) {}
+  constructor(private formBuilder: FormBuilder) { }
 
   ngOnInit(): void {
     this.content.valueChanges.subscribe((value) => {
@@ -159,16 +159,20 @@ export class DemoEditorComponent implements OnInit {
         selectionTemplate: this.hashtagSelectionTemplate,
         data: [
           {
-            key: "Red",
-            value: "Red",
+            key: "JavaScript",
+            value: "JavaScript",
           },
           {
-            key: "Green",
-            value: "Green",
+            key: "Python",
+            value: "Python",
           },
           {
-            key: "Blue",
-            value: "Blue",
+            key: "React",
+            value: "React",
+          },
+          {
+            key: "Vue",
+            value: "Vue",
           },
         ],
       },
@@ -197,20 +201,15 @@ export class DemoEditorComponent implements OnInit {
 
   // mock hashtag search request - you will use your app's hashtag API
   hashtagSearch(term: string): void {
-    this.hashtagResults = [
-      {
-        key: "Red",
-        value: { name: "Red" },
-      },
-      {
-        key: "Green",
-        value: { name: "Green" },
-      },
-      {
-        key: "Blue",
-        value: { name: "Blue" },
-      },
-    ];
+    const hashtagSuggestion = this.suggestions.find(s => s.trigger === "#");
+    if (hashtagSuggestion && hashtagSuggestion.data) {
+      this.hashtagResults = hashtagSuggestion.data.filter(item => {
+        console.log("Filtering item:", item); // DEBUGGING
+        return item.key.toLowerCase().includes(term.toLowerCase());
+      });
+    } else {
+      this.hashtagResults = [];
+    }
   }
 
   // the quick toolbar need improvement
