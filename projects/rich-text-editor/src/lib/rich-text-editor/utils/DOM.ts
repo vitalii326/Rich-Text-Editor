@@ -227,3 +227,51 @@ function processLiveElements(
   selection.removeAllRanges();
   return liveElements;
 }
+
+ // wrap selection with a specific tag
+ export function wrapSelectionWithTag(tagName: string): void {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return;
+  
+  const range = selection.getRangeAt(0);
+  const newElement = document.createElement(tagName);
+  const selectedContent = range.extractContents();
+  
+  newElement.appendChild(selectedContent);
+  range.insertNode(newElement);
+  
+  selection.removeAllRanges();
+}
+
+// create lists
+export function createList(listType: "ul" | "ol"): void {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return;
+  
+  const range = selection.getRangeAt(0);
+  
+  const list = document.createElement(listType);
+  
+  const content = range.toString();
+  const lines = content.split("\n").filter(line => line.trim() !== "");
+  
+  if (lines.length === 0) {
+    // No lines, create a single empty list item
+    const li = document.createElement("li");
+    li.innerHTML = "&nbsp;";
+    list.appendChild(li);
+  } else {
+    // Create list items for each line
+    for (const line of lines) {
+      const li = document.createElement("li");
+      li.textContent = line;
+      list.appendChild(li);
+    }
+  }
+  
+  // Replace the selected content with the list
+  range.deleteContents();
+  range.insertNode(list);
+  
+  selection.removeAllRanges();
+}

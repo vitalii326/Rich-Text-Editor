@@ -41,6 +41,8 @@ import {
   isRectEmpty,
   makeLiveHashtags,
   makeLiveImagetags,
+  wrapSelectionWithTag,
+  createList
 } from "../utils/DOM";
 import {
   HASHTAG,
@@ -227,56 +229,79 @@ export class CdkRichTextEditorComponent
     return document.queryCommandState(format);
   }
 
-  addFormat(format: any, value?: string): void {
+  addFormat(format: string, value?: string): void {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    
     switch (format) {
       case "heading1":
-        document.execCommand("formatBlock", false, "h1");
-        break;
       case "heading2":
-        document.execCommand("formatBlock", false, "h2");
-        break;
       case "heading3":
-        document.execCommand("formatBlock", false, "h3");
-        break;
       case "heading4":
-        document.execCommand("formatBlock", false, "h4");
+      case "heading5": {
+        const level = format.charAt(format.length - 1);
+        const headingTag = `h${level}`;
+        wrapSelectionWithTag(headingTag);
         break;
-      case "heading5":
-        document.execCommand("formatBlock", false, "h5");
+      }
+      case "quote": {
+        wrapSelectionWithTag("blockquote");
         break;
-      case "quote":
-        document.execCommand("formatBlock", false, "blockquote");
+      }
+      case "numbered-list": {
+        createList("ul");
         break;
-      case "numbered-list":
-        document.execCommand("insertUnorderedList");
+      }
+      case "ordered-list": {
+        createList("ol");
         break;
-      case "ordered-list":
-        document.execCommand("insertOrderedList");
-        break;
-      case "link":
-        const sText = window.document.getSelection()?.toString();
-        document.execCommand("createLink", false, sText);
+      }
+      case "link": {
+        const selectedText = selection.toString();
+        const url = value || selectedText;
+        
+        const linkElement = document.createElement("a");
+        linkElement.href = url;
+        linkElement.textContent = selectedText;
+        
+        range.deleteContents();
+        range.insertNode(linkElement);
+        
+        selection.removeAllRanges();
+        
         this.linkOut();
         break;
-      case "code":
-        document.execCommand(
-          "insertHTML",
-          false,
-          "<h1 id='codeTemp'>" + document.getSelection() + "</h1>"
-        );
-        const codeTag = document.getElementById("codeTemp");
-        var newElement = document.createElement("code");
-        if (codeTag) {
-          newElement.innerHTML = codeTag.innerHTML;
-          if (codeTag.parentNode)
-            codeTag.parentNode.replaceChild(newElement, codeTag);
-          this.formatCodeEditors();
-        }
-
+      }
+      case "code": {
+        const codeElement = document.createElement("code");
+        const selectedContent = range.extractContents();
+        codeElement.appendChild(selectedContent);
+        
+        range.insertNode(codeElement);
+        
+        selection.removeAllRanges();
+        
+        this.formatCodeEditors();
         break;
-      default:
-        document.execCommand(format);
+      }
+      case "bold": {
+        wrapSelectionWithTag("strong");
         break;
+      }
+      case "italic": {
+        wrapSelectionWithTag("em");
+        break;
+      }
+      case "underline": {
+        wrapSelectionWithTag("u");
+        break;
+      }
+      default: {
+        console.warn(`Format "${format}" not implemented with modern DOM API`);
+        break;
+      }
     }
   }
 
