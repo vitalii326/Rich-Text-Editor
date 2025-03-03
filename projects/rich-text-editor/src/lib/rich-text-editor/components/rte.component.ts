@@ -629,6 +629,11 @@ export class CdkRichTextEditorComponent
   }
 
   getEditorContent = () => {
+    // check if the editor is empty
+    const content = this.richText.nativeElement.textContent?.trim() || '';
+    if (!content) {
+      return '';
+    }
     let clonedTextNode = this.richText.nativeElement.cloneNode(
       true
     ) as HTMLElement;
@@ -1002,33 +1007,92 @@ export class CdkRichTextEditorComponent
     event.preventDefault();
     event.stopPropagation();
   };
-
-  onPaste = (event: ClipboardEvent) => {
-    if (this.disabled) return;
-
-    const fileList = event.clipboardData?.files;
-    if (fileList && fileList.length > 0) {
-      event.preventDefault();
-      event.stopPropagation();
-      const pasteFile = (file: File) => {
-        loadImage(file, async (dataURI: string) => {
-          const { id, elem } = await this.insertImage(dataURI.toString());
-          if (this.uploadImageRequest) {
-            this.isUploading = true;
-            this.uploadImageRequest.emit({ file, elem });
-          }
-          this._contentChanged();
+  pasteFile = (file: File) => {
+    if (file.type.startsWith("image/")) {
+      const selection = window.getSelection();
+      const range = selection?.getRangeAt(0);
+      if (range) {
+        const elem = document.createElement('img');
+        elem.src = URL.createObjectURL(file);
+        range.insertNode(elem);
+        
+        this.uploadImageRequest.emit({
+          file,
+          elem
         });
-      };
-
-      for (let i = 0; i < fileList.length; i++) {
-        let file = fileList.item(i);
-        file && pasteFile(file);
       }
-      return;
     }
   };
+  private formatMentionText = (text: string) => {
+    // Match @username pattern at the start
+    const mentionMatch = text.match(/^(@[^/]+)(.*)/);
+    if (mentionMatch) {
+      const [_, mention, rest] = mentionMatch;
+      return `<a href="/@${mention.substring(1)}" class="mention">${mention}</a>${rest}`;
+    }
+    return text;
+  };
+  private cleanText = (html: string) => {
+    // Create a temporary div to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
 
+    // Remove all <br> and <span> tags
+    const brs = tempDiv.getElementsByTagName('br');
+    while (brs.length > 0) {
+      brs[0].parentNode?.removeChild(brs[0]);
+    }
+    
+    const spans = tempDiv.getElementsByTagName('span');
+    while (spans.length > 0) {
+      spans[0].parentNode?.removeChild(spans[0]);
+    }
+
+    // Get the text content and clean it
+    let text = tempDiv.textContent || '';
+    
+    // Remove extra spaces and &nbsp;
+    text = text.replace(/\s+/g, ' ')
+              .replace(/&nbsp;/g, ' ')
+              .trim();
+              
+    // Remove any remaining HTML entities
+    text = text.replace(/&[^;]+;/g, '');
+    
+    return text;
+  };
+  
+  onPaste = (event: ClipboardEvent) => {
+    event.preventDefault();
+  
+    const clipboardData = event.clipboardData;
+    if (!clipboardData) return;
+  
+    // Handle image paste separately
+    if (clipboardData.files.length) {
+      const file = clipboardData.files[0];
+      if (file.type.startsWith("image/")) {
+        this.pasteFile(file);
+        return;
+      }
+    }
+  
+    // Get HTML content from clipboard and sanitize it
+    const html = clipboardData.getData("text/html") || clipboardData.getData("text/plain");
+    const cleanText = this.cleanText(html);
+  
+    // Insert cleaned text at cursor position
+    const selection = window.getSelection();
+    if (selection?.rangeCount) {
+      selection.deleteFromDocument();
+      const range = selection.getRangeAt(0);
+      const textNode = document.createTextNode(cleanText);
+      range.insertNode(textNode);
+      range.collapse(false);
+    }
+  
+    this._contentChanged();
+  };
   addEmoji(event: any) {
     this.isVisibleEmojiModal = false;
     this.insertText(event.emoji.native);
