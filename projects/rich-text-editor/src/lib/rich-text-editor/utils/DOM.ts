@@ -275,3 +275,67 @@ export function createList(listType: "ul" | "ol"): void {
   
   selection.removeAllRanges();
 }
+
+export function isPartialSelection(element: HTMLElement, range: Range): boolean {
+  // Check if the range is contained entirely within the element
+  // but doesn't cover the whole element content
+  return element.contains(range.startContainer) &&
+         element.contains(range.endContainer) &&
+         (range.startOffset > 0 || 
+          range.endOffset < (range.endContainer.nodeType === Node.TEXT_NODE ? 
+                            (range.endContainer as Text).length : 
+                            (range.endContainer as HTMLElement).childNodes.length));
+}
+
+export function handlePartialTagRemoval(element: HTMLElement, range: Range, tag: string): void {
+  // Create a document fragment to hold the restructured content
+  const fragment = document.createDocumentFragment();
+  
+  // Clone the range to work with
+  const workingRange = range.cloneRange();
+  
+  // Set range to cover everything before the selection
+  const beforeRange = document.createRange();
+  beforeRange.setStart(element.firstChild || element, 0);
+  beforeRange.setEnd(range.startContainer, range.startOffset);
+  
+  if (!beforeRange.collapsed) {
+    // Create a new element with the same tag for content before selection
+    const beforeElement = document.createElement(tag);
+    beforeElement.append(beforeRange.cloneContents());
+    fragment.append(beforeElement);
+  }
+  
+  // Add the selected content without the tag
+  fragment.append(range.cloneContents());
+  
+  // Set range to cover everything after the selection
+  const afterRange = document.createRange();
+  afterRange.setStart(range.endContainer, range.endOffset);
+  afterRange.setEnd(element.lastChild || element, 
+                   element.lastChild?.nodeType === Node.TEXT_NODE ? 
+                   (element.lastChild as Text).length : 
+                   (element.lastChild as HTMLElement)?.childNodes.length || 0);
+  
+  if (!afterRange.collapsed) {
+    // Create a new element with the same tag for content after selection
+    const afterElement = document.createElement(tag);
+    afterElement.append(afterRange.cloneContents());
+    fragment.append(afterElement);
+  }
+  
+  // Replace the original element with our fragment
+  element.replaceWith(fragment);
+  
+  // Reset the selection to maintain user's selection
+  const newRange = document.createRange();
+  newRange.setStart(range.startContainer, range.startOffset);
+  newRange.setEnd(range.endContainer, range.endOffset);
+  
+  // Get the current selection object
+  const currentSelection = window.getSelection();
+  if (currentSelection) {
+    currentSelection.removeAllRanges();
+    currentSelection.addRange(newRange);
+  }
+}

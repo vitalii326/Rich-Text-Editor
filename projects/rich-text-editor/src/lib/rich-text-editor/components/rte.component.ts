@@ -42,7 +42,9 @@ import {
   makeLiveHashtags,
   makeLiveImagetags,
   wrapSelectionWithTag,
-  createList
+  createList,
+  isPartialSelection,
+  handlePartialTagRemoval
 } from "../utils/DOM";
 import {
   HASHTAG,
@@ -332,14 +334,51 @@ export class CdkRichTextEditorComponent
         this._removeInlineTag("code");
         break;
       case "bold":
+        this._removeInlineTag("strong");
+        break;
       case "italic":
+        this._removeInlineTag("em");
+        break;
       case "underline":
-        document.execCommand(format);
+        this._removeInlineTag("u");
         break;
       default:
-        document.execCommand("removeFormat", false);
+        this._removeAllFormatting();
         break;
     }
+  }
+
+  // Helper to remove all formatting from selection
+  private _removeAllFormatting(): void {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    const fragment = range.extractContents();
+    
+    // Create a temporary div to hold the content
+    const tempDiv = document.createElement('div');
+    tempDiv.appendChild(fragment);
+    
+    // Get the text content
+    const textContent = tempDiv.textContent || '';
+    
+    // Create a text node with the plain content
+    const textNode = document.createTextNode(textContent);
+    
+    // Insert the plain text
+    range.insertNode(textNode);
+    
+    // Clean up selection
+    selection.removeAllRanges();
+    
+    // Create new range at the end of inserted text
+    const newRange = document.createRange();
+    newRange.setStartAfter(textNode);
+    newRange.collapse(true);
+    
+    // Set the new selection
+    selection.addRange(newRange);
   }
 
   async insertImage(
@@ -750,7 +789,7 @@ export class CdkRichTextEditorComponent
 
     if (anchorNode instanceof Text) {
       if ((anchorNode as Text).textContent?.length == selection.anchorOffset) {
-        element = anchorNode.nextSibling;
+        element = anchorNode.nextSibling || anchorNode.parentNode;
       } else {
         element = anchorNode.parentNode;
       }
@@ -758,8 +797,9 @@ export class CdkRichTextEditorComponent
       if (
         (anchorNode as HTMLElement).childNodes.length == selection.anchorOffset
       ) {
-        element = anchorNode.nextSibling;
+        element = anchorNode.nextSibling || anchorNode;
       } else {
+        element = anchorNode.childNodes[selection.anchorOffset] || anchorNode;
       }
     }
     return element;
@@ -767,11 +807,25 @@ export class CdkRichTextEditorComponent
 
   private _untagParent(node: ChildNode | Node | null, tag: string): void {
     let element = this._findParentWithTag(node, tag);
-    if (element && element instanceof HTMLElement) {
-      const htmlElement = element as HTMLElement;
-
-      htmlElement.replaceWith(...Array.from(htmlElement.childNodes));
+    
+    if (!element || !(element instanceof HTMLElement)) return;
+    
+    const selection = window.getSelection();
+    if (!selection) return;
+    
+    // For partial selection handling
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      
+      // Check if it's a partial selection within the tag
+      if (isPartialSelection(element, range)) {
+        handlePartialTagRemoval(element, range, tag);
+        return;
+      }
     }
+    
+    // Full tag removal
+    element.replaceWith(...Array.from(element.childNodes));
   }
 
   private _isChildOfTag(node: any, tag: string): boolean {
