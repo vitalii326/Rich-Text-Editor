@@ -47,6 +47,7 @@ const LIST_TYPES = ["numbered-list", "bulleted-list"];
       </a>
     </span>
   `,
+  styleUrls: ['./demo-editor.component.scss'],
 })
 export class UnusualInlineComponent { }
 
@@ -243,18 +244,11 @@ export class DemoEditorComponent implements OnInit {
   }
 
   handleContentChange(value: string | null) {
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       const codes = document.getElementById("output")?.querySelectorAll("code");
       codes?.forEach((code) => {
         if (code) hljs.highlightElement(code);
-        code.style.display = "block";
-        code.style.whiteSpace = "pre-wrap";
-        code.style.border = "solid 1px #dbdbdb";
-        code.style.background = "#f7f6f3";
-        code.style.borderRadius = "5px";
-        code.style.margin = "5px 0";
-        code.style.padding = "10px";
       });
-    }, 0);
+    });
   }
 }

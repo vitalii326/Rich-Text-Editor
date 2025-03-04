@@ -76,35 +76,55 @@ export class CdkSuggestionComponent {
       return;
     }
 
-    const selection = window.getSelection();
-    if (selection && selection.isCollapsed && selection.rangeCount > 0) {
-      if (this.startedNode == undefined) {
+    // Set up the position of the suggestion panel
+    setTimeout(() => {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        // Always update the start node when showing to capture the correct position
         this.startedNode = selection.getRangeAt(0).endContainer;
         this.startedOffset = selection.getRangeAt(0).endOffset;
-      }
+        this.currentRange = selection.getRangeAt(0);
 
-      this.currentRange = selection.getRangeAt(0);
-      let rect = selection.getRangeAt(0).getBoundingClientRect();
-      if (isRectEmpty(rect)) {
-        rect = (selection.getRangeAt(0).startContainer as Element).getBoundingClientRect();
-      }
+        // Get positioning information
+        let rect = selection.getRangeAt(0).getBoundingClientRect();
+        if (isRectEmpty(rect)) {
+          rect = (selection.getRangeAt(0).startContainer as Element).getBoundingClientRect();
+        }
 
-      const editorRect = this.container.nativeElement.parentElement?.getBoundingClientRect();
-      if (editorRect) {
-        this.container.nativeElement.style.top = "" + (rect.bottom - editorRect.top) + "px";
-        this.container.nativeElement.style.left = "" + (rect.right - editorRect.x) + "px";
-        this.container.nativeElement.classList.toggle("rte-show", true);
+        const editorRect = this.container.nativeElement.parentElement?.getBoundingClientRect();
+        if (editorRect) {
+          // Position the suggestion panel correctly
+          this.container.nativeElement.style.top = "" + (rect.bottom - editorRect.top) + "px";
+          this.container.nativeElement.style.left = "" + (rect.right - editorRect.x) + "px";
+          this.container.nativeElement.classList.toggle("rte-show", true);
+        }
       }
-    }
+    }, 0); // Use setTimeout to ensure DOM is updated
   };
 
 
   onKeyDown = (event: KeyboardEvent): boolean => {
     console.log("Key pressed:", event.key);
 
-    if (event.key == "#") {
+    if (event.key === "#") {
       console.log("Hashtag detected on first press");
-      this.show(true);
+
+      // Initialize hashtag suggestions on first keystroke
+      if (this.getSuggestionList) {
+        this.getSuggestionList("#")
+          .then((suggestion) => {
+            this.setTrigger(suggestion);
+            this.show(true);
+            this.hashtagKeywords.emit(""); // Request initial hashtag suggestions
+          })
+          .catch((reason) => {
+            console.error("Error fetching suggestions:", reason);
+          });
+      } else {
+        this.show(true);
+      }
+
+      return true;
     }
 
     if (event.key == "Escape") {

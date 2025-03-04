@@ -1198,6 +1198,10 @@ export class CdkRichTextEditorComponent
   };
 
   onValueChange = (event: Event) => {
+    // Stop page reloads by preventing default behavior
+    event.preventDefault();
+    event.stopPropagation();
+
     event = event as KeyboardEvent;
     if (this.suggestionEnabled) {
       this.suggestion.onValueChange(event);
