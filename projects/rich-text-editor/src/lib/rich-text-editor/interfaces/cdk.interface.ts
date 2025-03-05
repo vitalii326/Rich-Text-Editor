@@ -13,8 +13,9 @@ export type CdkEditAction =
   | "italic"
   | "underline"
   | "code"
-  | "ordered-list"
+  | "ordered-list" // Note: If you have a distinct action for numbered lists, make sure this aligns
   | "numbered-list"
+  | "bulleted-list" // Add this line here
   | "emoji";
 
 export interface CdkToolbarItemSetting {

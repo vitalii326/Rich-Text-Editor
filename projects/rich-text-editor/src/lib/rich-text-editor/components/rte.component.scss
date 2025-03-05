@@ -78,9 +78,7 @@ rte-suggestion {
   h4,
   h5,
   h6,
-  li,
   ol,
-  ul,
   pre {
     display: block;
   }
@@ -249,4 +247,140 @@ rte-suggestion {
   position: absolute;
   z-index: 1000;
   bottom: 10px;
+}
+:host {
+  display: block;
+  position: relative;
+}
+
+.rte-text-editor {
+  padding: 8px;
+  min-height: 100px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: auto;
+  
+  &[placeholder]:empty:before {
+    content: attr(placeholder);
+    color: #999;
+    pointer-events: none;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  
+  pre {
+    background-color: #f6f8fa;
+    border-radius: 4px;
+    padding: 16px;
+    overflow: auto;
+    margin: 8px 0;
+  }
+  
+  code {
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    white-space: pre;
+    tab-size: 2;
+  }
+  
+  /* Line numbers and syntax highlighting */
+  .hljs-line {
+    display: block;
+    counter-increment: line;
+    position: relative;
+  }
+  
+  .hljs-line:before {
+    content: counter(line);
+    display: inline-block;
+    width: 24px;
+    text-align: right;
+    margin-right: 16px;
+    color: #6e7781;
+    user-select: none;
+  }
+  
+  /* Punctuation styles - this fixes the dashes issue */
+  .punctuation, .operator {
+    color: #24292f;
+  }
+}
+
+/* Emoji picker styles */
+.emoji {
+  position: absolute;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+li {
+  display: list-item;
+}
+
+
+/* Basic styling for the rich text editor */
+.rte-text-editor {
+  min-height: 20px;
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+/* Style for bulleted lists */
+.rte-text-editor ul {
+  list-style-type: disc !important;
+  margin-left: 1.5em !important;
+  padding-left: 0.5em !important;
+}
+
+/* Style for numbered lists */
+.rte-text-editor ol {
+  list-style-type: decimal !important;
+  margin-left: 1.5em !important;
+  padding-left: 0.5em !important;
+}
+
+/* Ensure list items have proper spacing */
+.rte-text-editor li {
+  margin: 0.25em 0;
+}
+
+/* Style for bullet points */
+.rte-text-editor ul > li::marker {
+  color: #0066cc; /* Blue color for bullet points */
+  font-size: 1.2em;
+}
+
+/* Ensure editor content is properly visible */
+.rte-text-editor p, .rte-text-editor div {
+  margin-bottom: 0.75em;
+}
+
+/* Style for toolbar */
+.rte-toolbar {
+  display: flex;
+  gap: 5px;
+  padding: 5px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Quick toolbar styling */
+.rte-quick-toolbar {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  padding: 5px;
+  z-index: 1000;
+  display: none;
+}
+
+.rte-quick-toolbar.rte-show {
+  display: flex;
 }

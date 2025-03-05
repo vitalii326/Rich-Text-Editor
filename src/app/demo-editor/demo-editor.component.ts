@@ -192,8 +192,8 @@ export class DemoEditorComponent implements OnInit {
 
           // your image CDN response may be different but ultimately needs to be an IIMageRes
           this.uploadImageResult = {
-            url: res.cdnUrl,
-            elem: { src: res.cdnUrl + res.name },
+            url: res.cdnUrl + res.name,
+            elem: $uploadReq.elem,
           };
         }
       })
@@ -215,7 +215,7 @@ export class DemoEditorComponent implements OnInit {
 
   // the quick toolbar need improvement
   onBtnClick = (action: CdkEditAction) => {
-    this.editor.triggerToolbarAction({ action: action });
+    this.editor.triggerToolbarAction({ action });
   };
 
   toggleDisabled(): void {
