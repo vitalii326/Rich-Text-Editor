@@ -79,8 +79,7 @@ import { CdkSuggestionComponent } from "./suggestion/suggestion.component";
   encapsulation: ViewEncapsulation.None,
 })
 export class CdkRichTextEditorComponent
-  implements ControlValueAccessor, AfterViewInit, AfterContentChecked
-{
+  implements ControlValueAccessor, AfterViewInit, AfterContentChecked {
   @ViewChild("richText") richText!: ElementRef<HTMLElement>;
   @ViewChild("richText", { read: ViewContainerRef })
   richTextContainer!: ViewContainerRef;
@@ -134,8 +133,8 @@ export class CdkRichTextEditorComponent
 
   private _content: string = '';
   private _disabled: boolean = false;
-  private _onChange: (value: any) => void = () => {};
-  private _onTouched: () => void = () => {};
+  private _onChange: (value: any) => void = () => { };
+  private _onTouched: () => void = () => { };
 
   constructor(private domSantanizer: SafeDOMPipe) {
     this.toolbarItems = TOOLBAR_ITEMS.map((item) => ({
@@ -199,44 +198,41 @@ export class CdkRichTextEditorComponent
 
   isFormatActive(format: any): boolean {
     const selection = document.getSelection();
-
-    if (format == "heading1") {
-      return this._isChildOfTag(selection?.anchorNode, "h1");
+    if (selection && selection.anchorNode) { // Ensure anchorNode is not null or undefined
+      if (format == "heading1") {
+        return this._isChildOfTag(selection.anchorNode, "h1");
+      }
+      if (format == "heading2") {
+        return this._isChildOfTag(selection.anchorNode, "h2");
+      }
+      if (format == "heading3") {
+        return this._isChildOfTag(selection.anchorNode, "h3");
+      }
+      if (format == "heading4") {
+        return this._isChildOfTag(selection.anchorNode, "h4");
+      }
+      if (format == "heading5") {
+        return this._isChildOfTag(selection.anchorNode, "h5");
+      }
+      if (format == "quote") {
+        return this._isChildOfTag(selection.anchorNode, "blockquote");
+      }
+      if (format == "code") {
+        return this._isInlineTag("code");
+      }
+      if (format == "link") {
+        return this._isInlineTag("a");
+      }
     }
-    if (format == "heading2") {
-      return this._isChildOfTag(selection?.anchorNode, "h2");
-    }
-    if (format == "heading3") {
-      return this._isChildOfTag(selection?.anchorNode, "h3");
-    }
-    if (format == "heading4") {
-      return this._isChildOfTag(selection?.anchorNode, "h4");
-    }
-    if (format == "heading5") {
-      return this._isChildOfTag(selection?.anchorNode, "h5");
-    }
-    if (format == "quote") {
-      return this._isChildOfTag(selection?.anchorNode, "blockquote");
-    }
-    if (format == "code") {
-      return this._isInlineTag("code");
-    }
-    if (format == "link") {
-      return this._isInlineTag("a");
-    }
-    if (format == "code") {
-      return this._isInlineTag("code");
-    }
-
     return document.queryCommandState(format);
   }
 
   addFormat(format: string, value?: string): void {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
-    
+
     const range = selection.getRangeAt(0);
-    
+
     switch (format) {
       case "heading1":
       case "heading2":
@@ -253,26 +249,26 @@ export class CdkRichTextEditorComponent
         break;
       }
       case "numbered-list": {
-        createList("ul");
+        createList("ol");
         break;
       }
-      case "ordered-list": {
-        createList("ol");
+      case "bulleted-list": {
+        createList("ul");
         break;
       }
       case "link": {
         const selectedText = selection.toString();
         const url = value || selectedText;
-        
+
         const linkElement = document.createElement("a");
         linkElement.href = url;
         linkElement.textContent = selectedText;
-        
+
         range.deleteContents();
         range.insertNode(linkElement);
-        
+
         selection.removeAllRanges();
-        
+
         this.linkOut();
         break;
       }
@@ -280,11 +276,11 @@ export class CdkRichTextEditorComponent
         const codeElement = document.createElement("code");
         const selectedContent = range.extractContents();
         codeElement.appendChild(selectedContent);
-        
+
         range.insertNode(codeElement);
-        
+
         selection.removeAllRanges();
-        
+
         this.formatCodeEditors();
         break;
       }
@@ -352,31 +348,31 @@ export class CdkRichTextEditorComponent
   private _removeAllFormatting(): void {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
-    
+
     const range = selection.getRangeAt(0);
     const fragment = range.extractContents();
-    
+
     // Create a temporary div to hold the content
     const tempDiv = document.createElement('div');
     tempDiv.appendChild(fragment);
-    
+
     // Get the text content
     const textContent = tempDiv.textContent || '';
-    
+
     // Create a text node with the plain content
     const textNode = document.createTextNode(textContent);
-    
+
     // Insert the plain text
     range.insertNode(textNode);
-    
+
     // Clean up selection
     selection.removeAllRanges();
-    
+
     // Create new range at the end of inserted text
     const newRange = document.createRange();
     newRange.setStartAfter(textNode);
     newRange.collapse(true);
-    
+
     // Set the new selection
     selection.addRange(newRange);
   }
@@ -478,8 +474,7 @@ export class CdkRichTextEditorComponent
       if (
         text.length > 2 &&
         endOffset > 2 &&
-        text.substring(endOffset - 3, endOffset) == "```"
-      ) {
+        text.substring(endOffset - 3, endOffset) == "```") {
         const range = selection.getRangeAt(0);
         range.setStart(focusNode, endOffset - 3);
         range.setEnd(focusNode, text.length);
@@ -676,22 +671,16 @@ export class CdkRichTextEditorComponent
   }
 
   triggerToolbarAction(item: CdkToolbarItemSetting): void {
-    if (item.action == "component") {
-      if (item.payload) {
-        let component: Type<Component> = item.payload;
-        this.toggleComponent(component);
-      }
-    } else if (item.action == "image") {
-      this.onUploadButtonClick();
-    } else if (item.action == "emoji") {
-      this.showEmoji();
+    if (item.action === "numbered-list") {
+      document.execCommand("insertOrderedList");
+    } else if (item.action === "bulleted-list") {
+      document.execCommand("insertUnorderedList");
     } else {
+      // Existing logic for other actions
       this.toggleFormat(item.action);
     }
-
     this.updateToolbar();
   }
-
   getEditorContent = () => {
     // check if the editor is empty
     const content = this.richText.nativeElement.textContent?.trim() || '';
@@ -784,56 +773,113 @@ export class CdkRichTextEditorComponent
   private _getSelectedNode(): Node | ChildNode | null {
     const selection = window.getSelection();
     if (!selection?.anchorNode) return null;
+
     const anchorNode = selection.anchorNode;
     let element: Node | ChildNode | null = anchorNode;
 
+    // Handle text nodes (most common case)
     if (anchorNode instanceof Text) {
-      if ((anchorNode as Text).textContent?.length == selection.anchorOffset) {
+      // Check if cursor is at the end of text content
+      if ((anchorNode as Text).textContent?.length === selection.anchorOffset) {
+        // Try to get next sibling, fall back to parent if there is no next sibling
         element = anchorNode.nextSibling || anchorNode.parentNode;
       } else {
+        // Cursor is within text content, use parent node
         element = anchorNode.parentNode;
       }
-    } else {
-      if (
-        (anchorNode as HTMLElement).childNodes.length == selection.anchorOffset
-      ) {
+    }
+    // Handle element nodes
+    else if (anchorNode instanceof Element) {
+      // Check if the cursor is at the end of the element's children
+      if (anchorNode.childNodes.length === selection.anchorOffset) {
+        // At the end, try to get next sibling or use the element itself
         element = anchorNode.nextSibling || anchorNode;
-      } else {
+      } else if (selection.anchorOffset >= 0 && selection.anchorOffset < anchorNode.childNodes.length) {
+        // Within element's children, get the specific child at the offset
         element = anchorNode.childNodes[selection.anchorOffset] || anchorNode;
+      } else {
+        // Invalid offset, use the element itself
+        element = anchorNode;
       }
     }
+    // Handle other node types (comments, processing instructions, etc.)
+    else if (anchorNode.nodeType !== undefined) {
+      // For any other node type, get the parent node as fallback
+      element = anchorNode.parentNode || anchorNode;
+    }
+
     return element;
   }
 
   private _untagParent(node: ChildNode | Node | null, tag: string): void {
+    // Find the parent element with the specified tag
     let element = this._findParentWithTag(node, tag);
-    
+
+    // Make sure we found an element that is actually an HTMLElement
     if (!element || !(element instanceof HTMLElement)) return;
-    
+
     const selection = window.getSelection();
     if (!selection) return;
-    
-    // For partial selection handling
+
+    // Handle partial selections
     if (selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
-      
-      // Check if it's a partial selection within the tag
-      if (isPartialSelection(element, range)) {
-        handlePartialTagRemoval(element, range, tag);
-        return;
+
+      // Check if only part of the element's content is selected
+      if (typeof isPartialSelection === 'function' && isPartialSelection(element, range)) {
+        // If we have a helper function for partial tag removal, use it
+        if (typeof handlePartialTagRemoval === 'function') {
+          handlePartialTagRemoval(element, range, tag);
+          return;
+        }
       }
     }
-    
-    // Full tag removal
-    element.replaceWith(...Array.from(element.childNodes));
+
+    try {
+      // Full tag removal - preserve all child nodes
+      const childNodes = Array.from(element.childNodes);
+
+      // Only proceed if we have a parent node to insert into
+      if (element.parentNode) {
+        // Replace the element with all its children
+        element.replaceWith(...childNodes);
+      }
+    } catch (error) {
+      console.error("Error removing tag:", error);
+
+      // Fallback method if the replace fails
+      if (element.parentNode) {
+        const fragment = document.createDocumentFragment();
+        while (element.firstChild) {
+          fragment.appendChild(element.firstChild);
+        }
+        element.parentNode.replaceChild(fragment, element);
+      }
+    }
   }
 
-  private _isChildOfTag(node: any, tag: string): boolean {
-    let parentElement: Node | ChildNode | null = node;
+  private _isChildOfTag(node: Node | null, tag: string): boolean {
+    if (!node) return false;
 
-    while (parentElement && parentElement !== this.richText.nativeElement) {
-      if (parentElement.nodeName.toLocaleLowerCase() === tag) return true;
-      parentElement = parentElement.parentElement;
+    let currentElement: Node | null = node;
+    const tagLower = tag.toLowerCase();
+
+    // Traverse up the DOM tree until we reach the editor root or null
+    while (currentElement && currentElement !== this.richText.nativeElement) {
+      // Check if the current node is an element and matches our tag
+      if (currentElement.nodeName &&
+        currentElement.nodeName.toLowerCase() === tagLower) {
+        return true;
+      }
+
+      // Try to get parentElement (for Element nodes)
+      if (currentElement instanceof Element) {
+        currentElement = currentElement.parentElement;
+      }
+      // Fallback to parentNode for other node types
+      else {
+        currentElement = currentElement.parentNode;
+      }
     }
 
     return false;
@@ -843,15 +889,36 @@ export class CdkRichTextEditorComponent
     node: Node | ChildNode | null,
     tag: string
   ): Node | null {
-    let parentElement = node;
+    if (!node) return null;
 
-    while (parentElement) {
-      if (
-        parentElement.nodeName.toLowerCase() === tag &&
-        parentElement !== this.richText.nativeElement
-      )
-        return parentElement;
-      parentElement = parentElement.parentElement;
+    let currentElement: Node | null = node;
+    const tagLower = tag.toLowerCase();
+
+    // Traverse up the DOM tree
+    while (currentElement) {
+      // Check if this is our target element (and not the editor itself)
+      if (currentElement.nodeName &&
+        currentElement.nodeName.toLowerCase() === tagLower &&
+        currentElement !== this.richText.nativeElement) {
+        return currentElement;
+      }
+
+      // Stop if we've reached the editor root
+      if (currentElement === this.richText.nativeElement) {
+        return null;
+      }
+
+      // Try parentElement first (works for Element nodes)
+      if (currentElement instanceof Element) {
+        currentElement = currentElement.parentElement;
+      }
+      // Fallback to parentNode for other node types
+      else {
+        currentElement = currentElement.parentNode;
+      }
+
+      // Break the loop if we've reached the top
+      if (!currentElement) break;
     }
 
     return null;
@@ -990,19 +1057,47 @@ export class CdkRichTextEditorComponent
     }
   }
 
-  checkCodeTag = (currentNode: any) => {
-    let parent = currentNode;
-    while (parent !== this.richText.nativeElement) {
+  checkCodeTag = (currentNode: Node | null) => {
+    if (!currentNode) return -1;
+
+    let parent: Node | null = currentNode;
+
+    // Traverse up the DOM tree until we reach the editor root or null
+    while (parent && parent !== this.richText.nativeElement) {
+      // Check if this is a code element
       if (parent.nodeName === "CODE") {
-        return parseInt(parent.id.replace("code_", ""));
+        // Safely get the ID and parse it
+        const id = parent instanceof Element ? parent.id : "";
+        if (id && id.startsWith("code_")) {
+          const codeIndex = parseInt(id.replace("code_", ""), 10);
+          return isNaN(codeIndex) ? -1 : codeIndex;
+        }
+        return -1;
       }
+
+      // Move up to parent, handling potential nulls
       parent = parent.parentNode;
     }
+
     return -1;
   };
 
   // INPUT EVENT
-  onKeyDown = (event: KeyboardEvent) => {
+  onKeyDown = (event: KeyboardEvent): void => {
+    // Add shortcuts for lists
+    if (event.ctrlKey && event.shiftKey) {
+      if (event.key === "7") {
+        event.preventDefault();
+        this.toggleFormat("numbered-list");
+        this.updateToolbar();
+        return;
+      } else if (event.key === "8") {
+        event.preventDefault();
+        this.toggleFormat("bulleted-list");
+        this.updateToolbar();
+        return;
+      }
+    }
     if (this.disabled) {
       return;
     }
@@ -1094,7 +1189,7 @@ export class CdkRichTextEditorComponent
         const elem = document.createElement('img');
         elem.src = URL.createObjectURL(file);
         range.insertNode(elem);
-        
+
         this.uploadImageRequest.emit({
           file,
           elem
@@ -1121,7 +1216,7 @@ export class CdkRichTextEditorComponent
     while (brs.length > 0) {
       brs[0].parentNode?.removeChild(brs[0]);
     }
-    
+
     const spans = tempDiv.getElementsByTagName('span');
     while (spans.length > 0) {
       spans[0].parentNode?.removeChild(spans[0]);
@@ -1129,24 +1224,24 @@ export class CdkRichTextEditorComponent
 
     // Get the text content and clean it
     let text = tempDiv.textContent || '';
-    
+
     // Remove extra spaces and &nbsp;
     text = text.replace(/\s+/g, ' ')
-              .replace(/&nbsp;/g, ' ')
-              .trim();
-              
+      .replace(/&nbsp;/g, ' ')
+      .trim();
+
     // Remove any remaining HTML entities
     text = text.replace(/&[^;]+;/g, '');
-    
+
     return text;
   };
-  
+
   onPaste = (event: ClipboardEvent) => {
     event.preventDefault();
-  
+
     const clipboardData = event.clipboardData;
     if (!clipboardData) return;
-  
+
     // Handle image paste separately
     if (clipboardData.files.length) {
       const file = clipboardData.files[0];
@@ -1155,11 +1250,11 @@ export class CdkRichTextEditorComponent
         return;
       }
     }
-  
+
     // Get HTML content from clipboard and sanitize it
     const html = clipboardData.getData("text/html") || clipboardData.getData("text/plain");
     const cleanText = this.cleanText(html);
-  
+
     // Insert cleaned text at cursor position
     const selection = window.getSelection();
     if (selection?.rangeCount) {
@@ -1169,7 +1264,7 @@ export class CdkRichTextEditorComponent
       range.insertNode(textNode);
       range.collapse(false);
     }
-  
+
     this._contentChanged();
   };
   addEmoji(event: any) {

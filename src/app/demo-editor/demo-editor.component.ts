@@ -48,7 +48,7 @@ const LIST_TYPES = ["numbered-list", "bulleted-list"];
     </span>
   `,
 })
-export class UnusualInlineComponent {}
+export class UnusualInlineComponent { }
 
 @Component({
   selector: "app-demo-editor",
@@ -120,7 +120,7 @@ export class DemoEditorComponent implements OnInit {
   imgAccountId: string | null = null;
   variant: string | null = null;
 
-  constructor(private formBuilder: FormBuilder) {}
+  constructor(private formBuilder: FormBuilder) { }
 
   ngOnInit(): void {
     this.content.valueChanges.subscribe((value) => {
@@ -215,7 +215,7 @@ export class DemoEditorComponent implements OnInit {
 
   // the quick toolbar need improvement
   onBtnClick = (action: CdkEditAction) => {
-    this.editor.triggerToolbarAction({ action: action });
+    this.editor.triggerToolbarAction({ action });
   };
 
   toggleDisabled(): void {

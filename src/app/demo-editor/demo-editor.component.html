@@ -35,11 +35,13 @@
 </button>
 <button (click)="onBtnClick('code')">Code</button>
 <button (click)="onBtnClick('image')">Image</button>
+<button (click)="onBtnClick('numbered-list')">Numbered List</button>
+<button (click)="onBtnClick('bulleted-list')">Bulleted List</button>
 
 <div class="demo-editor">
   <recruitler-rte
     #editor
-    [theme]="currentTheme"
+    
     [imgUrl]="imgUrl"
     [imgAccountId]="imgAccountId"
     [variant]="variant"

@@ -155,3 +155,48 @@ input:-webkit-autofill {
   -webkit-animation-name: autofill;
   -webkit-animation-fill-mode: both;
 }
+
+/* Code editor styles */
+.rte-text-editor {
+  pre, code {
+    font-family: monospace;
+    line-height: 1.5;
+  }
+
+  .comment, .hljs-comment {
+    color: #6a9955;
+  }
+
+  .keyword, .hljs-keyword {
+    color: #569cd6;
+  }
+
+  .string, .hljs-string {
+    color: #ce9178;
+  }
+
+  .function, .hljs-function {
+    color: #dcdcaa;
+  }
+
+  .number, .hljs-number {
+    color: #b5cea8;
+  }
+
+  .punctuation {
+    color: #d4d4d4;
+  }
+
+  .operator {
+    color: #d4d4d4;
+  }
+}
+
+/* Ensure proper display of code blocks */
+.demo-editor-code-block {
+  background-color: #1e1e1e;
+  border-radius: 4px;
+  padding: 8px;
+  margin: 8px 0;
+  overflow-x: auto;
+}

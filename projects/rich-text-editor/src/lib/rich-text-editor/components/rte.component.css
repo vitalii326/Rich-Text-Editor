@@ -1,0 +1,44 @@
+
+.rte-text-editor {
+  min-height: 150px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  outline: none;
+  line-height: 1.5;
+}
+
+.rte-text-editor[placeholder]:empty:before {
+  content: attr(placeholder);
+  color: #999;
+}
+
+.rte-text-editor:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.emoji {
+  position: absolute;
+  z-index: 100;
+}
+
+/* Styling for formatted elements */
+.rte-text-editor a {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+.rte-text-editor blockquote {
+  border-left: 3px solid #ccc;
+  margin-left: 0;
+  padding-left: 10px;
+  color: #666;
+}
+
+.rte-text-editor code {
+  background-color: #f1f1f1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}

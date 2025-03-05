@@ -143,9 +143,8 @@ export function createLiveImgtag(
   viewContainer?: ViewContainerRef
 ): HTMLElement {
   const element = document.createElement("img");
-  element.src = `${imgInfo.domain}${
-    imgInfo?.accountId ? imgInfo?.accountId + "/" : ""
-  }${value}/${imgInfo?.variant || ""}`;
+  element.src = `${imgInfo.domain}${imgInfo?.accountId ? imgInfo?.accountId + "/" : ""
+    }${value}/${imgInfo?.variant || ""}`;
   element.alt = "Image";
 
   return element;
@@ -228,33 +227,99 @@ function processLiveElements(
   return liveElements;
 }
 
- // wrap selection with a specific tag
- export function wrapSelectionWithTag(tagName: string): void {
+// wrap selection with a specific tag
+export function wrapSelectionWithTag(tagName: string): void {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0) return;
-  
+
   const range = selection.getRangeAt(0);
+
+  if (range.collapsed) {
+    return;
+  }
+
   const newElement = document.createElement(tagName);
   const selectedContent = range.extractContents();
-  
-  newElement.appendChild(selectedContent);
+
+  // Process nested elements correctly
+  processNestedElements(selectedContent, newElement);
+
   range.insertNode(newElement);
-  
+
+  // Create a new range and position it after the newly inserted element
+  const newRange = document.createRange();
+  newRange.selectNodeContents(newElement);
+  newRange.collapse(false); // collapse to the end
+
+  // Update the selection with the new range
   selection.removeAllRanges();
+  selection.addRange(newRange);
+}
+
+/**
+ * Processes nested elements to maintain proper formatting hierarchy
+ * @param sourceFragment DocumentFragment containing the selected content
+ * @param targetElement Element to append the processed content to
+ */
+function processNestedElements(sourceFragment: DocumentFragment, targetElement: HTMLElement) {
+  // If we're wrapping with the same tag as an existing parent, merge them instead of nesting
+  const mergeSimilarTags = (node: Node, parentTag: string): Node => {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as HTMLElement;
+
+      // If this element has the same tag as the one we're wrapping with,
+      // return its children instead of the element itself
+      if (element.tagName.toLowerCase() === parentTag.toLowerCase()) {
+        const fragment = document.createDocumentFragment();
+        while (element.firstChild) {
+          fragment.appendChild(element.firstChild);
+        }
+        return fragment;
+      }
+    }
+    return node;
+  };
+
+  // Process each child node in the source fragment
+  const childNodes = Array.from(sourceFragment.childNodes);
+  childNodes.forEach(node => {
+    const processedNode = mergeSimilarTags(node, targetElement.tagName);
+
+    if (processedNode.nodeType === Node.ELEMENT_NODE) {
+      // For element nodes, preserve existing formatting
+      const clonedNode = processedNode.cloneNode(false);
+      targetElement.appendChild(clonedNode);
+
+      // Process children of this element
+      const childFragment = document.createDocumentFragment();
+      Array.from(processedNode.childNodes).forEach(child => {
+        childFragment.appendChild(child.cloneNode(true));
+      });
+
+      // Recursively process the children
+      processNestedElements(childFragment, clonedNode as HTMLElement);
+    } else if (processedNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      // For document fragments (from merged tags), process each child
+      processNestedElements(processedNode as DocumentFragment, targetElement);
+    } else {
+      // For text nodes and other node types, just append directly
+      targetElement.appendChild(processedNode.cloneNode(true));
+    }
+  });
 }
 
 // create lists
 export function createList(listType: "ul" | "ol"): void {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0) return;
-  
+
   const range = selection.getRangeAt(0);
-  
+
   const list = document.createElement(listType);
-  
+
   const content = range.toString();
   const lines = content.split("\n").filter(line => line.trim() !== "");
-  
+
   if (lines.length === 0) {
     // No lines, create a single empty list item
     const li = document.createElement("li");
@@ -268,11 +333,11 @@ export function createList(listType: "ul" | "ol"): void {
       list.appendChild(li);
     }
   }
-  
+
   // Replace the selected content with the list
   range.deleteContents();
   range.insertNode(list);
-  
+
   selection.removeAllRanges();
 }
 
@@ -280,58 +345,58 @@ export function isPartialSelection(element: HTMLElement, range: Range): boolean 
   // Check if the range is contained entirely within the element
   // but doesn't cover the whole element content
   return element.contains(range.startContainer) &&
-         element.contains(range.endContainer) &&
-         (range.startOffset > 0 || 
-          range.endOffset < (range.endContainer.nodeType === Node.TEXT_NODE ? 
-                            (range.endContainer as Text).length : 
-                            (range.endContainer as HTMLElement).childNodes.length));
+    element.contains(range.endContainer) &&
+    (range.startOffset > 0 ||
+      range.endOffset < (range.endContainer.nodeType === Node.TEXT_NODE ?
+        (range.endContainer as Text).length :
+        (range.endContainer as HTMLElement).childNodes.length));
 }
 
 export function handlePartialTagRemoval(element: HTMLElement, range: Range, tag: string): void {
   // Create a document fragment to hold the restructured content
   const fragment = document.createDocumentFragment();
-  
+
   // Clone the range to work with
   const workingRange = range.cloneRange();
-  
+
   // Set range to cover everything before the selection
   const beforeRange = document.createRange();
   beforeRange.setStart(element.firstChild || element, 0);
   beforeRange.setEnd(range.startContainer, range.startOffset);
-  
+
   if (!beforeRange.collapsed) {
     // Create a new element with the same tag for content before selection
     const beforeElement = document.createElement(tag);
     beforeElement.append(beforeRange.cloneContents());
     fragment.append(beforeElement);
   }
-  
+
   // Add the selected content without the tag
   fragment.append(range.cloneContents());
-  
+
   // Set range to cover everything after the selection
   const afterRange = document.createRange();
   afterRange.setStart(range.endContainer, range.endOffset);
-  afterRange.setEnd(element.lastChild || element, 
-                   element.lastChild?.nodeType === Node.TEXT_NODE ? 
-                   (element.lastChild as Text).length : 
-                   (element.lastChild as HTMLElement)?.childNodes.length || 0);
-  
+  afterRange.setEnd(element.lastChild || element,
+    element.lastChild?.nodeType === Node.TEXT_NODE ?
+      (element.lastChild as Text).length :
+      (element.lastChild as HTMLElement)?.childNodes.length || 0);
+
   if (!afterRange.collapsed) {
     // Create a new element with the same tag for content after selection
     const afterElement = document.createElement(tag);
     afterElement.append(afterRange.cloneContents());
     fragment.append(afterElement);
   }
-  
+
   // Replace the original element with our fragment
   element.replaceWith(fragment);
-  
+
   // Reset the selection to maintain user's selection
   const newRange = document.createRange();
   newRange.setStart(range.startContainer, range.startOffset);
   newRange.setEnd(range.endContainer, range.endOffset);
-  
+
   // Get the current selection object
   const currentSelection = window.getSelection();
   if (currentSelection) {
